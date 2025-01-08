@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QAP", "QAP\QAP.csproj", "{AF738C10-DAAC-431B-B531-D280142EEDE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QAP", "QAP\QAP.csproj", "{AF738C10-DAAC-431B-B531-D280142EEDE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectromagneticAlgorithm", "ElectromagneticAlgorithm\ElectromagneticAlgorithm.csproj", "{3BA1593F-C984-46AC-AC4E-46916E9EAF14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElectromagneticAlgorithm", "ElectromagneticAlgorithm\ElectromagneticAlgorithm.csproj", "{3BA1593F-C984-46AC-AC4E-46916E9EAF14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMTest", "EMTest\EMTest.csproj", "{97CA9290-9DA7-40AB-BC16-BEE2D42DC8AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMTest", "EMTest\EMTest.csproj", "{97CA9290-9DA7-40AB-BC16-BEE2D42DC8AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMUnitTests", "EMUnitTests\EMUnitTests.csproj", "{EFF63367-A9CF-4999-8C44-A31ACE386B52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{97CA9290-9DA7-40AB-BC16-BEE2D42DC8AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97CA9290-9DA7-40AB-BC16-BEE2D42DC8AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97CA9290-9DA7-40AB-BC16-BEE2D42DC8AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFF63367-A9CF-4999-8C44-A31ACE386B52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFF63367-A9CF-4999-8C44-A31ACE386B52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFF63367-A9CF-4999-8C44-A31ACE386B52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFF63367-A9CF-4999-8C44-A31ACE386B52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

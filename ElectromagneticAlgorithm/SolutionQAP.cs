@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace ElectromagneticAlgorithm
         private static int[][] locationDistances;
 
         private List<int> assignmentPermutation;
+        private int solutionLength;
 
         public static void SetQAPData(int[][] flows, int[][] distances)
         {
@@ -23,8 +25,8 @@ namespace ElectromagneticAlgorithm
         {
             if (facilityFlows == null || locationDistances == null) throw new Exception(); // TODO: Custom exceptions
 
-            int n = facilityFlows.Length;
-            assignmentPermutation = Enumerable.Range(0, n).ToList();
+            solutionLength = facilityFlows.Length;
+            assignmentPermutation = Enumerable.Range(0, solutionLength).ToList();
         }
 
         public int GetCost()
@@ -50,9 +52,31 @@ namespace ElectromagneticAlgorithm
             
         }
 
+        public int GetSolutionLength()
+        {
+            return solutionLength;
+        }
+
         public List<int> GetSolutionRepresentation()
         {
             return assignmentPermutation;
+        }
+
+        public void SetSolutionRepresentation(List<int> repr)
+        {
+            assignmentPermutation = repr;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new(assignmentPermutation[0].ToString());
+            for (int i = 1; i < assignmentPermutation.Count; i++)
+            {
+                sb.Append(", ");
+                sb.Append(assignmentPermutation[i].ToString());
+            }
+
+            return sb.ToString();
         }
     }
 }
