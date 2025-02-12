@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace ElectromagneticAlgorithm
 {
-    public interface IPermutationSolution : ISolution
+    public interface IPermutationSolution
     {
+        public int GetCost();
+
         public List<int> GetSolutionRepresentation();
         public int GetSolutionLength();
 

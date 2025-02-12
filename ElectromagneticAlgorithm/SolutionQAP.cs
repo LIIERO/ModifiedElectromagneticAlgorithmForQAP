@@ -23,7 +23,7 @@ namespace ElectromagneticAlgorithm
 
         public SolutionQAP()
         {
-            if (facilityFlows == null || locationDistances == null) throw new Exception(); // TODO: Custom exceptions
+            if (facilityFlows == null || locationDistances == null) throw new AlgorithmUtils.SolutionNotInitializedException();
 
             solutionLength = facilityFlows.Length;
             assignmentPermutation = Enumerable.Range(0, solutionLength).ToList();
@@ -64,6 +64,8 @@ namespace ElectromagneticAlgorithm
 
         public void SetSolutionRepresentation(List<int> repr)
         {
+            AlgorithmUtils.ValidatePermutation(repr, solutionLength);
+
             assignmentPermutation = repr;
         }
 
