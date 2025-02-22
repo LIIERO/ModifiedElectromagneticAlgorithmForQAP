@@ -63,6 +63,14 @@ namespace ElectromagneticAlgorithm
                 throw new AlgorithmUtils.InvalidSolutionException($"Rozwiązanie ma niepoprawne wartości: {repr}");
         }
 
+        public static T ValidateSolutionType<T>(ISolution solution)
+        {
+            if (solution is T)
+                return (T)solution;
+            else
+                throw new MismatchedSolutionException();
+        }
+
         public static void Shuffle<T>(this IList<T> list) // Źródło: https://stackoverflow.com/questions/273313/randomize-a-listt
         {
             int n = list.Count;
@@ -82,6 +90,8 @@ namespace ElectromagneticAlgorithm
         {
             public InvalidSolutionException(string message) : base(message) { }
         }
+
+        public class MismatchedSolutionException : Exception { } // Kiedy próbujemy robić crossover różnych typów rozwiązań
 
         public class SolutionNotInitializedException : Exception { }
     }

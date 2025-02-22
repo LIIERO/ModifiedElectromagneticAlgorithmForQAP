@@ -7,43 +7,69 @@ namespace ElectromagneticAlgorithm
     {
         private int maxIter;
         private int maxLocalIter;
-        private List<IPermutationSolution> solutionPopulation;
+        private List<ISolution> solutionPopulation;
 
-        private IPermutationSolution bestGlobalSolution;
+        private ISolution bestGlobalSolutionEver;
 
-        public EMSolver(IPermutationSolution[] initialPopulation, int maxIter, int maxLocalIter)
+        public EMSolver(ISolution[] initialPopulation, int maxIter, int maxLocalIter)
         {
             solutionPopulation = initialPopulation.ToList();
             this.maxIter = maxIter;
             this.maxLocalIter = maxLocalIter;
 
-            bestGlobalSolution = initialPopulation[0];
+            bestGlobalSolutionEver = initialPopulation[0];
             UpdateBestGlobalSolution();
         }
 
         ~EMSolver() { }
+
 
         public void StartAlgorithm()
         {
             
         }
 
-        private void UpdateBestGlobalSolution()
+        private ISolution GetBestSolutionFromPopulation()
         {
-            int costThreshold = bestGlobalSolution.GetCost();
+            return solutionPopulation.MinBy(sol => sol.GetCost());
+        }
 
-            foreach (IPermutationSolution solution in solutionPopulation)
+        private double GetSolutionCharge(ISolution solution)
+        {
+            int bestSolutionCost = GetBestSolutionFromPopulation().GetCost();
+            return Math.Exp(-1 * ((solution.GetCost() - bestSolutionCost) / bestSolutionCost));
+        }
+
+        private ISolution[] GetNeighbouringSolutions(ISolution solution, int maxNeighbouringDistance)
+        {
+            List<ISolution> neighbouringSolutions = new();
+
+            foreach (ISolution sol in solutionPopulation)
+            {
+                if (solution != sol && solution.GetHammingDistanceFromSolution(sol) <= maxNeighbouringDistance)
+                {
+                    neighbouringSolutions.Add(sol);
+                }
+            }
+            return neighbouringSolutions.ToArray();
+        }
+
+        private void UpdateBestGlobalSolution() // TODO: Simplify like in GetBestSolutionFromPopulation
+        {
+            int costThreshold = bestGlobalSolutionEver.GetCost();
+
+            foreach (ISolution solution in solutionPopulation)
             {
                 int solutionCost = solution.GetCost();
                 if (solutionCost < costThreshold)
                 {
-                    bestGlobalSolution = solution;
+                    bestGlobalSolutionEver = solution;
                     costThreshold = solutionCost;
                 }
             }
         }
 
-        public static void AttractionInjection(IPermutationSolution solution, List<IPermutationSolution> neighbouringSolutions)
+        public void AttractionInjection(ISolution solution, ISolution[] neighbouringSolutions)
         {
             // Randomly choose the mapping section
             Random random = new();
@@ -53,53 +79,20 @@ namespace ElectromagneticAlgorithm
             (int l, int r) = r2 > r1 ? (r1, r2) : (r2, r1);
             Console.WriteLine($"l = {l}, r = {r}");
 
-            // Determine charge of the point
-            int i = 1;
-            foreach (IPermutationSolution sol in neighbouringSolutions)
+            // Determine attraction forces for each neighbouring solution
+            int d = neighbouringSolutions.Length;
+            double[] attractionForces = new double[d];
+
+            for (int i = 0; i < d; i++)
             {
-                i += 1;
+                double solCharge = GetSolutionCharge(neighbouringSolutions[i]);
+                attractionForces[i] = solCharge / Math.Pow(solution.GetHammingDistanceFromSolution(neighbouringSolutions[i]), 2);
             }
+                
+
         }
 
-        public static void PMX(IPermutationSolution solution1, IPermutationSolution solution2, int l, int r)
-        {
-            // Get copies of solutions
-            List<int> s1 = new(solution1.GetSolutionRepresentation());
-            List<int> s2 = new(solution2.GetSolutionRepresentation());
-            List<int> s1Copy = new(s1);
-            int range = r - l;
-            if (range <= 0) throw new Exception("Right side of the range needs to be higher than the left side.");
-
-            // Swap a slice of s1 with slice of s2, and vice versa + Determine the mapping relationship
-            AlgorithmUtils.Map<int, int> mappingRelationship = new();
-            for (int i = l; i < r; i++)
-            {
-                s1[i] = s2[i];
-                s2[i] = s1Copy[i];
-                mappingRelationship.Add(s1[i], s2[i]);
-            }
-
-            // Legalize solution with the mapping relationship
-            List<int> forwardElements = mappingRelationship.Forward.GetKeys();
-            List<int> reverseElements = mappingRelationship.Reverse.GetKeys();
-
-            void LegalizeSolution(int i)
-            {
-                if (forwardElements.Contains(s1[i]))
-                    s1[i] = mappingRelationship.Forward[s1[i]];
-                if (reverseElements.Contains(s2[i]))
-                    s2[i] = mappingRelationship.Reverse[s2[i]];
-            }
-
-            for (int i = 0; i < l; i++) // Elements before the slice
-                LegalizeSolution(i);
-            for (int i = r; i < s1.Count; i++) // Elements after the slice
-                LegalizeSolution(i);
-
-            // Replace the solutions
-            solution1.SetSolutionRepresentation(s1);
-            solution2.SetSolutionRepresentation(s2);
-        }
+        
 
         public void PrintPopulation()
         {
