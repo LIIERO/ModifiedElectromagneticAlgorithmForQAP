@@ -84,6 +84,46 @@ namespace ElectromagneticAlgorithm
             }
         }
 
+        public static string EscapeIt(string value)
+        {
+            var builder = new StringBuilder();
+            foreach (var cur in value)
+            {
+                switch (cur)
+                {
+                    case '\t':
+                        builder.Append(@"\t");
+                        break;
+                    case '\r':
+                        builder.Append(@"\r");
+                        break;
+                    case '\n':
+                        builder.Append(@"\n");
+                        break;
+                    // etc ...
+                    default:
+                        builder.Append(cur);
+                        break;
+                }
+            }
+            return builder.ToString();
+        } // Źródło: https://stackoverflow.com/questions/9418517/how-to-force-console-writeline-to-print-verbatim-strings
+
+        public static void PrintMatrix<T>(T[,] matrix) // Źródło: https://stackoverflow.com/questions/12826760/printing-2d-array-in-matrix-format
+        {
+            int rowLength = matrix.GetLength(0);
+            int colLength = matrix.GetLength(1);
+
+            for (int i = 0; i < rowLength; i++)
+            {
+                for (int j = 0; j < colLength; j++)
+                {
+                    Console.Write(string.Format("{0} ", matrix[i, j]));
+                }
+                Console.Write(Environment.NewLine + Environment.NewLine);
+            }
+        }
+
 
         // Exceptions
         public class InvalidSolutionException : Exception

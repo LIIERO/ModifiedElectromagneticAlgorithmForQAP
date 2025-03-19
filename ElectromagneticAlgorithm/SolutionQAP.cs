@@ -9,28 +9,98 @@ namespace ElectromagneticAlgorithm
 {
     public class SolutionQAP : ISolution
     {
-        private static int[][] facilityFlows;
-        private static int[][] locationDistances;
+        public static int solutionLength;
+        private static int[,] facilityFlows;
+        private static int[,] locationDistances;
 
         private List<int> assignmentPermutation;
-        private int solutionLength;
+        //private int solutionLength;
 
-        public static void SetQAPData(int[][] flows, int[][] distances)
+        public static void SetQAPData(int[,] flows, int[,] distances)
         {
             facilityFlows = flows;
             locationDistances = distances;
         }
-        
-        static SolutionQAP()
-        {
-            // TODO: Wczytywanie danych facility flows, location distances z pliku
-        }
 
+        // Wczytywanie danych facility flows, location distances z pliku
+        public static void SetQAPData(string filePath)
+        {
+
+            string content = File.ReadAllText(filePath);
+            string[] splittedContent = content.Split("\n");
+            solutionLength = int.Parse(splittedContent[0]);
+            Console.WriteLine(solutionLength);
+            Console.WriteLine();
+
+            facilityFlows = new int[solutionLength, solutionLength];
+            locationDistances = new int[solutionLength, solutionLength];
+
+            int lineCounter = 2;
+            int i, j;
+
+            i = 0;
+            while (splittedContent[lineCounter] != string.Empty)
+            {
+                string newLine = splittedContent[lineCounter];
+
+                string newValue = "";
+                j = 0;
+                foreach (char c in newLine)
+                {
+                    if (c == ' ' && newValue != "")
+                    {
+                        facilityFlows[i, j] = int.Parse(newValue);
+                        j++;
+                        newValue = "";
+                    }
+                    else if (c != ' ')
+                        newValue += c;
+                }
+
+                if (newValue != "") facilityFlows[i, j] = int.Parse(newValue);
+
+                i++;
+                lineCounter++;
+            }
+            lineCounter++;
+
+            i = 0;
+            while (splittedContent[lineCounter] != string.Empty)
+            {
+                string newLine = splittedContent[lineCounter];
+
+                string newValue = "";
+                j = 0;
+                foreach (char c in newLine)
+                {
+                    if (c == ' ' && newValue != "")
+                    {
+                        locationDistances[i, j] = int.Parse(newValue);
+                        j++;
+                        newValue = "";
+                    }
+                    else if (c != ' ')
+                        newValue += c;
+                }
+
+                if (newValue != "") locationDistances[i, j] = int.Parse(newValue);
+
+                i++;
+                lineCounter++;
+            }
+
+            AlgorithmUtils.PrintMatrix(facilityFlows);
+            Console.WriteLine("\n\nkaczka\n\n");
+            AlgorithmUtils.PrintMatrix(locationDistances);
+            Console.WriteLine();
+
+
+        }
+        
         public SolutionQAP()
         {
             if (facilityFlows == null || locationDistances == null) throw new AlgorithmUtils.SolutionNotInitializedException();
 
-            solutionLength = facilityFlows.Length;
             assignmentPermutation = Enumerable.Range(0, solutionLength).ToList();
         }
 
@@ -38,7 +108,7 @@ namespace ElectromagneticAlgorithm
         {
             
             int totalCost = 0;
-            int n = facilityFlows.Length;
+            int n = solutionLength;
 
             for (int i = 0; i < n; i++)
             {
@@ -49,7 +119,7 @@ namespace ElectromagneticAlgorithm
                     int location1 = i;
                     int location2 = j;
 
-                    totalCost += facilityFlows[facility1][facility2] * locationDistances[location1][location2];
+                    totalCost += facilityFlows[facility1, facility2] * locationDistances[location1, location2];
                 }
             }
 

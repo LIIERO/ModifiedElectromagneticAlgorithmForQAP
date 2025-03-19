@@ -97,9 +97,10 @@ namespace ElectromagneticAlgorithm
         public void PrintPopulation()
         {
             Console.WriteLine("Population:");
-            foreach(IPermutationSolution solution in solutionPopulation)
+            foreach(ISolution solution in solutionPopulation) // TODO: działa z QAP solution, znajdź czemu nie działa z interfejsem
             {
                 Console.WriteLine(solution.ToString());
+                Console.WriteLine(solution.GetCost());
             }
         }
     }
