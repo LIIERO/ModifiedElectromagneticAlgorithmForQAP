@@ -22,6 +22,10 @@ public class EMTest
 
         Console.ReadLine();*/
 
+        // Test ChooseRandom
+        /*int[] ints = new int[] {2, 1, 3, 7, 9, 8, 4, 5, 6, 0};
+        int[] subset = AlgorithmUtils.ChooseRandom(ints, 4);
+        foreach (int i in subset) Console.WriteLine(i);*/
 
 
         // Tworzenie początkowej populacji
@@ -44,12 +48,15 @@ public class EMTest
         // Inicjalizacja algorytmu elektromagnetycznego
 
         // TODO: Parametry
-        int maxIter = 0;
-        int maxLocalIter = 0;
+        int maxIter = 100;
+        int activeSolutionSampleSize = 10; // TODO: Nieużyte
+        int neighbourhoodDistance = 11;
+        double attractionProbability = 0.5;
 
-        EMSolver solver = new(initialPopulation, maxIter, maxLocalIter);
+        EMSolver solver = new(initialPopulation, maxIter, activeSolutionSampleSize, neighbourhoodDistance, attractionProbability);
         solver.PrintPopulation();
-
+        solver.RunAlgorithm();
+        solver.PrintPopulation();
 
         Console.ReadLine();
     }

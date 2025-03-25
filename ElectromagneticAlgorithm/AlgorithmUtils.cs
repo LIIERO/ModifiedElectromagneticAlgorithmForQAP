@@ -124,6 +124,19 @@ namespace ElectromagneticAlgorithm
             }
         }
 
+        public static T[] ChooseRandom<T>(this T[] arr, int n) // Źródło: https://www.reddit.com/r/dotnet/comments/nfwtbg/what_is_the_net_way_of_choosing_n_random_elements/
+        {
+            var rng = new Random();
+
+            var sample = Enumerable
+                .Range(0, n)
+                .Select(x => rng.Next(0, 1 + arr.Length - n))
+                .OrderBy(x => x)
+                .Select((x, i) => arr[x + i])
+                .ToArray();
+
+            return sample;
+        }
 
         // Exceptions
         public class InvalidSolutionException : Exception

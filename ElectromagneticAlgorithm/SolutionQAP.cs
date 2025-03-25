@@ -29,8 +29,8 @@ namespace ElectromagneticAlgorithm
             string content = File.ReadAllText(filePath);
             string[] splittedContent = content.Split("\n");
             solutionLength = int.Parse(splittedContent[0]);
-            Console.WriteLine(solutionLength);
-            Console.WriteLine();
+            //Console.WriteLine(solutionLength);
+            //Console.WriteLine();
 
             facilityFlows = new int[solutionLength, solutionLength];
             locationDistances = new int[solutionLength, solutionLength];
@@ -89,10 +89,10 @@ namespace ElectromagneticAlgorithm
                 lineCounter++;
             }
 
-            AlgorithmUtils.PrintMatrix(facilityFlows);
+            /*AlgorithmUtils.PrintMatrix(facilityFlows);
             Console.WriteLine("\n\nkaczka\n\n");
             AlgorithmUtils.PrintMatrix(locationDistances);
-            Console.WriteLine();
+            Console.WriteLine();*/
 
 
         }
@@ -128,6 +128,8 @@ namespace ElectromagneticAlgorithm
 
         public void CrossoverWithSolution(ISolution secondSolution, int l, int r)
         {
+            Console.WriteLine($"l = {l}, r = {r}");
+
             SolutionQAP solution2 = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(secondSolution);
 
             // Get copies of solutions
