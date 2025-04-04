@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using static System.Collections.Specialized.BitVector32;
 
 namespace ElectromagneticAlgorithm
@@ -28,7 +29,8 @@ namespace ElectromagneticAlgorithm
 
             //bestGlobalSolutionEver = initialPopulation[0];
             //UpdateBestGlobalSolution();
-            bestGlobalSolutionEver = GetBestSolutionFromPopulation();
+            bestGlobalSolutionEver = GetBestSolutionFromPopulation().GetCopy();
+            Console.WriteLine($"Best initial solution cost: {bestGlobalSolutionEver.GetCost()}");
         }
 
         ~EMSolver() { }
@@ -62,12 +64,15 @@ namespace ElectromagneticAlgorithm
                         AttractionInjection(solution, neighbouringSubset);
                     else
                         RepulsionSwap(solution, neighbouringSubset);
+
+                    //AttractionInjection(solution, neighbouringSubset);
                 }
 
-                bestGlobalSolutionEver = GetBestSolutionFromPopulation();
-                //Console.WriteLine(bestGlobalSolutionEver.GetCost());
+                ISolution bestLocalSolution = GetBestSolutionFromPopulation();
+                if (bestLocalSolution.GetCost() < bestGlobalSolutionEver.GetCost()) bestGlobalSolutionEver = bestLocalSolution.GetCopy();
             }
 
+            Console.WriteLine($"Best final solution cost: {bestGlobalSolutionEver.GetCost()}");
         }
 
         private ISolution GetBestSolutionFromPopulation()
@@ -150,15 +155,15 @@ namespace ElectromagneticAlgorithm
         {
             // Randomly choose the mapping section
             Random random = new();
-            int n = solution.GetSolutionLength();
-            int r1 = random.Next(n); int r2 = random.Next(n);
-            while (r1 == r2) r2 = random.Next(n);
+            int solLen = solution.GetSolutionLength();
+            int r1 = random.Next(solLen); int r2 = random.Next(solLen);
+            while (r1 == r2) r2 = random.Next(solLen);
             (int l, int r) = r2 > r1 ? (r1, r2) : (r2, r1);
             //Console.WriteLine($"l = {l}, r = {r}");
 
             // Determine attraction forces for each neighbouring solution
             int d = neighbouringSolutions.Length;
-            Console.WriteLine(d);
+            //Console.WriteLine(d);
             double[] attractionForces = new double[d];
 
             for (int i = 0; i < d; i++)
@@ -173,10 +178,19 @@ namespace ElectromagneticAlgorithm
 
             for (int i = 0; i < d; i++)
             {
-                int rP = lP + (int)Math.Ceiling(attractionForces[i] / attractionForcesSum);
-                //Console.WriteLine($"lP = {lP}, rP = {rP}");
+                double forceRatio = attractionForces[i] / attractionForcesSum;
+                //Console.WriteLine(forceRatio);
+                int addedRange = (int)Math.Ceiling(forceRatio * solLen);
+                //Console.WriteLine(addedRange);
+                if (addedRange == 0) addedRange = 1;
+                if (addedRange == solLen) addedRange = solLen - 1;
+
+                int rP = lP + addedRange;
+                rP %= solLen;
+
                 solution.CrossoverWithSolution(neighbouringSolutions[i], lP, rP);
                 lP = rP + 1;
+                lP %= solLen;
             }
 
             return solution;
@@ -187,6 +201,7 @@ namespace ElectromagneticAlgorithm
             // Determine attraction forces for each neighbouring solution
             int d = neighbouringSolutions.Length;
             double[] attractionForces = new double[d];
+            int solLen = solution.GetSolutionLength();
 
             for (int i = 0; i < d; i++)
             {
@@ -194,11 +209,19 @@ namespace ElectromagneticAlgorithm
                 attractionForces[i] = solCharge / Math.Pow(solution.GetHammingDistanceFromSolution(neighbouringSolutions[i]), 2);
             }
 
-            // TODO
+            double attractionForcesSum = attractionForces.Sum();
+            int sameElementsSum = 0;
+            for (int j = 0; j < d; j++)
+                sameElementsSum += solLen - solution.GetHammingDistanceFromSolution(neighbouringSolutions[j]);
+            
             for (int i = 0; i < d; i++)
             {
+                int noElementsInSamePositions = solLen - solution.GetHammingDistanceFromSolution(neighbouringSolutions[i]);
+                double forceRatio = attractionForces[i] / attractionForcesSum;
+                
+                int noToSwap = Math.Min((int)Math.Ceiling(sameElementsSum * forceRatio), noElementsInSamePositions); // Wzór (4) praca WCH
 
-
+                solution.SwapElementsMatchingWithSolution(neighbouringSolutions[i], noToSwap);
             }
 
             return solution;

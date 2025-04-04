@@ -9,21 +9,22 @@ public class EMTest
         SolutionQAP.SetQAPData(dataPath);
         int solutionLength = SolutionQAP.solutionLength;
 
+        //Console.WriteLine(SolutionQAP.GetAverageCost());
 
-        // Test PMX
-        /*SolutionQAP s1 = new(); SolutionQAP s2 = new();
-        s1.SetSolutionRepresentation(new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
-        s2.SetSolutionRepresentation(new List<int> { 4, 5, 2, 1, 8, 7, 6, 9, 3 });
+        /*// Test PMX
+        SolutionQAP s1 = new(); SolutionQAP s2 = new();
+        s1.SetSolutionRepresentation(new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10, 11 });
+        s2.SetSolutionRepresentation(new List<int> { 4, 5, 2, 1, 8, 7, 6, 9, 3, 11, 10, 0 });
 
-        EMSolver.PMX(s1, s2, 3, 7);
+        s1.CrossoverWithSolution(s2, 6, 0);
 
         Console.WriteLine(s1.ToString());
         Console.WriteLine(s2.ToString());
 
         Console.ReadLine();*/
 
-        // Test ChooseRandom
-        /*int[] ints = new int[] {2, 1, 3, 7, 9, 8, 4, 5, 6, 0};
+        /*// Test ChooseRandom
+        int[] ints = new int[] { 2, 1, 3, 7, 9, 8, 4, 5, 6, 0 };
         int[] subset = AlgorithmUtils.ChooseRandom(ints, 4);
         foreach (int i in subset) Console.WriteLine(i);*/
 
@@ -37,12 +38,11 @@ public class EMTest
             initialPopulation[i] = new SolutionQAP();
             // TODO: W taki czy inny sposób zainicjalizuj populację początkową, metodę która to robi możesz przenieść do AlgorithmUtils
             // Na razie jest losowo
-            List<int> newSolution = Enumerable.Range(0, solutionLength).ToList();
-            AlgorithmUtils.Shuffle(newSolution);
+            List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
+            AlgorithmUtils.Shuffle(newSolutionRepr);
 
-            initialPopulation[i].SetSolutionRepresentation(newSolution);
+            initialPopulation[i].SetSolutionRepresentation(newSolutionRepr);
         }
-
 
 
         // Inicjalizacja algorytmu elektromagnetycznego

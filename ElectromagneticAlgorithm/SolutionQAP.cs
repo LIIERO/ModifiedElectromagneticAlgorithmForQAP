@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -93,20 +95,52 @@ namespace ElectromagneticAlgorithm
             Console.WriteLine("\n\nkaczka\n\n");
             AlgorithmUtils.PrintMatrix(locationDistances);
             Console.WriteLine();*/
-
-
         }
-        
-        public SolutionQAP()
+
+        public static double GetAverageCost() // TODO: Popraw tak jak ma być czyli średnia dla danych wartości w danych miejscach
+        {
+            int sumFij = 0, sumDkl = 0; //, sumFii = 0, sumDkk = 0;
+            int n = solutionLength;
+
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    if (i != j)
+                    {
+                        sumFij += facilityFlows[i, j];
+                        sumDkl += locationDistances[i, j];
+                    }
+                    /*else
+                    {
+                        sumFii += facilityFlows[i, i];
+                        sumDkk += locationDistances[i, i];
+                    }*/
+                }
+            }
+
+            double n_s = 1.0/(n * (n - 1));
+            return n_s * sumFij * sumDkl; // + ((1.0/n) * sumFii * sumDkk);
+        }
+
+        private SolutionQAP(List<int> solutionRepresentation)
         {
             if (facilityFlows == null || locationDistances == null) throw new AlgorithmUtils.SolutionNotInitializedException();
 
-            assignmentPermutation = Enumerable.Range(0, solutionLength).ToList();
+            assignmentPermutation = new List<int>(solutionRepresentation);
+        }
+
+        public SolutionQAP() : this(Enumerable.Range(0, solutionLength).ToList()) { }
+
+        //private SolutionQAP(SolutionQAP solution) : this(solution.GetSolutionRepresentation()) { }
+
+        public ISolution GetCopy()
+        {
+            return new SolutionQAP(GetSolutionRepresentation());
         }
 
         public int GetCost()
         {
-            
             int totalCost = 0;
             int n = solutionLength;
 
@@ -114,10 +148,10 @@ namespace ElectromagneticAlgorithm
             {
                 for (int j = 0; j < n; j++)
                 {
-                    int facility1 = assignmentPermutation[i];
-                    int facility2 = assignmentPermutation[j];
-                    int location1 = i;
-                    int location2 = j;
+                    int facility1 = i;
+                    int facility2 = j;
+                    int location1 = assignmentPermutation[i];
+                    int location2 = assignmentPermutation[j];
 
                     totalCost += facilityFlows[facility1, facility2] * locationDistances[location1, location2];
                 }
@@ -128,7 +162,7 @@ namespace ElectromagneticAlgorithm
 
         public void CrossoverWithSolution(ISolution secondSolution, int l, int r)
         {
-            Console.WriteLine($"l = {l}, r = {r}");
+            //Console.WriteLine($"l = {l}, r = {r}");
 
             SolutionQAP solution2 = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(secondSolution);
 
@@ -139,37 +173,81 @@ namespace ElectromagneticAlgorithm
 
             List<int> s1Copy = new(s1);
             int range = r - l;
-            if (range <= 0) throw new Exception("Right side of the range needs to be higher than the left side.");
+            //if (range <= 0) throw new Exception("Right side of the range needs to be higher than the left side.");
+            if (range == 0) throw new Exception("Right side of the range must not be equal to the left side.");
 
             // Swap a slice of s1 with slice of s2, and vice versa + Determine the mapping relationship
             AlgorithmUtils.Map<int, int> mappingRelationship = new();
-            for (int i = l; i < r; i++)
+            int n = l;
+            while (n != r) // This will loop around if l > r (which can happen)
             {
-                s1[i] = s2[i];
-                s2[i] = s1Copy[i];
-                mappingRelationship.Add(s1[i], s2[i]);
+                s1[n] = s2[n];
+                s2[n] = s1Copy[n];
+                mappingRelationship.Add(s1[n], s2[n]);
+
+                n++;
+                n %= solutionLength;
             }
 
             // Legalize solution with the mapping relationship
             List<int> forwardElements = mappingRelationship.Forward.GetKeys();
             List<int> reverseElements = mappingRelationship.Reverse.GetKeys();
 
-            void LegalizeSolution(int i)
+            void LegalizeSolution(List<int> solutionRepr, int i, AlgorithmUtils.Map<int, int>.Indexer<int, int> mapping, List<int> mappingElements)
             {
-                if (forwardElements.Contains(s1[i]))
-                    s1[i] = mappingRelationship.Forward[s1[i]];
-                if (reverseElements.Contains(s2[i]))
-                    s2[i] = mappingRelationship.Reverse[s2[i]];
+                while (mappingElements.Contains(solutionRepr[i]))
+                    solutionRepr[i] = mapping[solutionRepr[i]];
             }
 
-            for (int i = 0; i < l; i++) // Elements before the slice
-                LegalizeSolution(i);
-            for (int i = r; i < s1.Count; i++) // Elements after the slice
-                LegalizeSolution(i);
+            n = r;
+            while (n != l) // This will loop around if l < r
+            {
+                LegalizeSolution(s1, n, mappingRelationship.Forward, forwardElements);
+                LegalizeSolution(s2, n, mappingRelationship.Reverse, reverseElements);
+                n++;
+                n %= solutionLength;
+            }
 
             // Replace the solutions
             this.SetSolutionRepresentation(s1);
-            solution2.SetSolutionRepresentation(s2);
+            //solution2.SetSolutionRepresentation(s2);
+        }
+
+        public void SwapElementsMatchingWithSolution(ISolution secondSolution, int noElements)
+        {
+            SolutionQAP solution2 = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(secondSolution);
+
+            // Get copies of solutions
+            List<int> s1 = new(this.GetSolutionRepresentation());
+            List<int> s2 = new(solution2.GetSolutionRepresentation());
+            AlgorithmUtils.ValidatePermutation(s2, solutionLength);
+
+            int noMatchingElements = 0;
+            List<int> matchingElementsIndexes = new();
+            for (int i = 0; i < solutionLength; i++)
+            {
+                if (s1[i] == s2[i])
+                {
+                    noMatchingElements++;
+                    matchingElementsIndexes.Add(i);
+                }
+            }
+
+            // We decide on elements we shuffle
+            // TODO: Shuffle so no index is left on it's original spot
+            AlgorithmUtils.Shuffle(matchingElementsIndexes);
+            List<int> indexesToShuffleUnsorted = matchingElementsIndexes.Take(noElements).ToList();
+            List<int> indexesToShuffle = new List<int>(indexesToShuffleUnsorted);
+            indexesToShuffle.Sort();
+
+            // We use the random order we already have from before
+            List<int> s1copy = new List<int>(s1);
+            for (int i = 0; i < indexesToShuffle.Count; i++)
+            {
+                s1[indexesToShuffle[i]] = s1copy[indexesToShuffleUnsorted[i]];
+            }
+
+            this.SetSolutionRepresentation(s1);
         }
 
         public int GetHammingDistanceFromSolution(ISolution solution)
