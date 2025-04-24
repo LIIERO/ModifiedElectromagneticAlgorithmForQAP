@@ -30,7 +30,7 @@ public class EMTest
 
 
         // Tworzenie początkowej populacji
-        int initialPopulationSize = 20;
+        int initialPopulationSize = 100;
         SolutionQAP[] initialPopulation = new SolutionQAP[initialPopulationSize];
 
         for (int i = 0; i < initialPopulationSize; i++)
@@ -48,12 +48,14 @@ public class EMTest
         // Inicjalizacja algorytmu elektromagnetycznego
 
         // TODO: Parametry
-        int maxIter = 100;
+        int maxIter = 500;
         int activeSolutionSampleSize = 10; // TODO: Nieużyte
         int neighbourhoodDistance = 11;
         double attractionProbability = 0.5;
 
         EMSolver solver = new(initialPopulation, maxIter, activeSolutionSampleSize, neighbourhoodDistance, attractionProbability);
+        solver.InitializeBestSolutionDataSaver("E:\\SzkolaProgramowanie\\Magisterka\\AlgorithmOutput\\bestSolutionData.csv");
+
         solver.PrintPopulation();
         solver.RunAlgorithm();
         solver.PrintPopulation();

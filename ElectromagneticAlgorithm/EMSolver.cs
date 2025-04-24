@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using static System.Collections.Specialized.BitVector32;
 
 namespace ElectromagneticAlgorithm
@@ -17,6 +18,10 @@ namespace ElectromagneticAlgorithm
 
         private ISolution bestGlobalSolutionEver;
         private Random random;
+
+        private StringBuilder bestSolutionCSV;
+        private bool saveBestSolutionData = false;
+        private string bestSolutionDataPath;
 
         public EMSolver(ISolution[] initialPopulation, int maxIter, int activeSolutionSampleSize, int neighbourhoodDistance, double attractionProbability)
         {
@@ -36,11 +41,23 @@ namespace ElectromagneticAlgorithm
         ~EMSolver() { }
 
 
+        public void InitializeBestSolutionDataSaver(string absolutePath)
+        {
+            saveBestSolutionData = true;
+            bestSolutionDataPath = absolutePath;
+
+            bestSolutionCSV = new StringBuilder();
+            bestSolutionCSV.AppendLine("Iteration,Best local solution cost,Best global solution cost");
+        }
+
+
         public void RunAlgorithm(float subsetRatio=0.5f)
         {
             // Global iteration
             for (int i = 0; i < maxIter; i++)
             {
+                Console.WriteLine($"\nIteration {i}");
+
                 // Select a random population subset
                 int populationLength = solutionPopulation.Length;
                 int populationSubsetSize = (int)(populationLength * subsetRatio);
@@ -53,6 +70,9 @@ namespace ElectromagneticAlgorithm
                 bool isAttracting = false;
                 if (random.NextDouble() < attractionProbability)
                     isAttracting = true;
+
+                isExploring = !isExploring;
+                Console.WriteLine($"is attracting: {isAttracting}, is exploring: {isExploring}");
 
                 bool betterObjectiveValueNeighbours = (isExploring && !isAttracting) || (!isExploring && isAttracting);
 
@@ -69,10 +89,27 @@ namespace ElectromagneticAlgorithm
                 }
 
                 ISolution bestLocalSolution = GetBestSolutionFromPopulation();
-                if (bestLocalSolution.GetCost() < bestGlobalSolutionEver.GetCost()) bestGlobalSolutionEver = bestLocalSolution.GetCopy();
+                int bestLocalSolutionCost = bestLocalSolution.GetCost();
+
+                if (bestLocalSolutionCost < bestGlobalSolutionEver.GetCost()) bestGlobalSolutionEver = bestLocalSolution.GetCopy();
+
+                if (saveBestSolutionData)
+                    bestSolutionCSV.AppendLine($"{i},{bestLocalSolutionCost},{bestGlobalSolutionEver.GetCost()}");
             }
 
-            Console.WriteLine($"Best final solution cost: {bestGlobalSolutionEver.GetCost()}");
+            FinishAlgorithm();
+        }
+
+        private void FinishAlgorithm()
+        {
+            Console.WriteLine($"\nBest final solution cost: {bestGlobalSolutionEver.GetCost()}");
+
+            if (saveBestSolutionData)
+            {
+                File.WriteAllText(bestSolutionDataPath, bestSolutionCSV.ToString());
+                Console.WriteLine($"Saved best solution data to {bestSolutionDataPath}");
+                //saveBestSolutionData = false;
+            }
         }
 
         private ISolution GetBestSolutionFromPopulation()
@@ -229,7 +266,7 @@ namespace ElectromagneticAlgorithm
 
         public void PrintPopulation()
         {
-            Console.WriteLine("Population:");
+            Console.WriteLine("\nPopulation:");
             foreach(ISolution solution in solutionPopulation) // TODO: działa z QAP solution, znajdź czemu nie działa z interfejsem
             {
                 Console.WriteLine(solution.ToString());
