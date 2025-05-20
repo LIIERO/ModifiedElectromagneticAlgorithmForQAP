@@ -63,15 +63,19 @@ namespace ElectromagneticAlgorithm
                 int populationSubsetSize = (int)(populationLength * subsetRatio);
                 solutionPopulationSubset = AlgorithmUtils.ChooseRandom(solutionPopulation, populationSubsetSize);
 
+                /*double entropy = Math.Exp(-10*i / (CalculateEntropy(solutionPopulation) * maxIter));
+                Console.WriteLine($"Entropy: {entropy}");
+
                 bool isExploring = false;
-                if (random.NextDouble() < Math.Exp(-i / CalculateEntropy(solutionPopulation)))
-                    isExploring = true;
+                if (random.NextDouble() < entropy)
+                    isExploring = true;*/
+
+                bool isExploring = true;
 
                 bool isAttracting = false;
                 if (random.NextDouble() < attractionProbability)
                     isAttracting = true;
 
-                isExploring = !isExploring;
                 Console.WriteLine($"is attracting: {isAttracting}, is exploring: {isExploring}");
 
                 bool betterObjectiveValueNeighbours = (isExploring && !isAttracting) || (!isExploring && isAttracting);
@@ -152,10 +156,11 @@ namespace ElectromagneticAlgorithm
 
             for (int i = 0; i < d; i++)
             {
-                double proportion = population[i].GetCost() / population.Sum(sol => sol.GetCost());
+                double proportion = ((double)population[i].GetCost()) / population.Sum(sol => sol.GetCost());
                 entropy += proportion * Math.Log2(proportion);
             }
 
+            Console.WriteLine(-entropy);
             return -entropy;
         }
 

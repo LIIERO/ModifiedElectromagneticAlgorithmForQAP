@@ -8,8 +8,8 @@ public class EMTest
         string dataPath = @"E:\SzkolaProgramowanie\Magisterka\ModifiedElectromagneticAlgorithmForQAP\Data\chr12a.dat";
         SolutionQAP.SetQAPData(dataPath);
         int solutionLength = SolutionQAP.solutionLength;
-
-        //Console.WriteLine(SolutionQAP.GetAverageCost());
+        Console.WriteLine(SolutionQAP.solutionLength);
+        Console.WriteLine(SolutionQAP.GetAverageCost());
 
         /*// Test PMX
         SolutionQAP s1 = new(); SolutionQAP s2 = new();
@@ -23,13 +23,19 @@ public class EMTest
 
         Console.ReadLine();*/
 
+
         /*// Test ChooseRandom
         int[] ints = new int[] { 2, 1, 3, 7, 9, 8, 4, 5, 6, 0 };
         int[] subset = AlgorithmUtils.ChooseRandom(ints, 4);
         foreach (int i in subset) Console.WriteLine(i);*/
 
 
-        // Tworzenie początkowej populacji
+        // Test conditional value
+        int[] c = [int.MaxValue, 3, 6, 2, int.MaxValue, int.MaxValue, 5, 11, 9, int.MaxValue, int.MaxValue, 0];
+        double expVal = SolutionQAP.GetConditionalExpectedCost(c);
+        Console.WriteLine(expVal);
+
+        /*// Tworzenie początkowej populacji
         int initialPopulationSize = 100;
         SolutionQAP[] initialPopulation = new SolutionQAP[initialPopulationSize];
 
@@ -50,7 +56,7 @@ public class EMTest
         // TODO: Parametry
         int maxIter = 500;
         int activeSolutionSampleSize = 10; // TODO: Nieużyte
-        int neighbourhoodDistance = 11;
+        int neighbourhoodDistance = 50;
         double attractionProbability = 0.5;
 
         EMSolver solver = new(initialPopulation, maxIter, activeSolutionSampleSize, neighbourhoodDistance, attractionProbability);
@@ -60,6 +66,6 @@ public class EMTest
         solver.RunAlgorithm();
         solver.PrintPopulation();
 
-        Console.ReadLine();
+        Console.ReadLine();*/
     }
 }

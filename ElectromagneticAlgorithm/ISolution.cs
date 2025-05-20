@@ -18,6 +18,8 @@ namespace ElectromagneticAlgorithm
 
         public int GetHammingDistanceFromSolution(ISolution solution);
 
+        public static double GetConditionalExpectedCost(int[] c) { return -1; } // c -> partial solution with int.MaxValue in ambiguous spots.
+
         public int GetSolutionLength();
         
         public ISolution GetCopy();

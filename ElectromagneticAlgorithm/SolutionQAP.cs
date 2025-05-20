@@ -294,5 +294,104 @@ namespace ElectromagneticAlgorithm
 
             return sb.ToString();
         }
+
+
+        public static double GetConditionalExpectedCost(int[] c)
+        {
+            List<int> Hlis = new(); List<int> Ulis = new();
+
+            for (int i = 0; i < c.Length; i++)
+            {
+                if (c[i] < int.MaxValue)
+                    Hlis.Add(i);
+
+                if (!c.Contains(i))
+                    Ulis.Add(i);
+            }
+
+            // H -> fixed indexes, U -> loose values
+            int[] H = Hlis.ToArray(); int[] U = Ulis.ToArray();
+
+            int n = solutionLength;
+            int k = H.Length;
+
+            if (k >= n - 1) throw new Exception($"Set H is too large, H: {k}, N: {n}");
+
+            int[] N = Enumerable.Range(0, n).ToArray();
+            int[] N_H = N.Except(H).ToArray(); // N\H
+
+            int sum1 = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0;
+
+            // sum 1
+            foreach (int i in H)
+            {
+                foreach (int j in H)
+                {
+                    sum1 += facilityFlows[i, j] * locationDistances[c[i], c[j]];
+                }
+            }
+
+            // sum 2
+            foreach (int i in H)
+            {
+                foreach (int j in N_H)
+                {
+                    int s = 0;
+                    foreach (int u in U)
+                        s += locationDistances[c[i], u];
+                    
+                    sum2 += facilityFlows[i, j] * s;
+                }
+            }
+
+            // sum 3
+            foreach (int i in N_H)
+            {
+                foreach (int j in H)
+                {
+                    int s = 0;
+                    foreach (int u in U)
+                        s += locationDistances[u, c[j]];
+                    
+                    sum3 += facilityFlows[i, j] * s;
+                }
+            }
+
+            // sum 4
+            foreach (int i in N_H)
+            {
+                int s = 0;
+                foreach (int u in U)
+                    s += locationDistances[u, u];
+
+                sum4 += facilityFlows[i, i] * s;
+            }
+
+            // sum 5
+            foreach (int i in N_H)
+            {
+                foreach (int j in N_H)
+                {
+                    if (i == j) continue;
+
+                    int s = 0;
+                    foreach (int o in U)
+                    {
+                        foreach (int l in U)
+                        {
+                            if (o == l) continue;
+                            s += locationDistances[o, l];
+                        }
+                    }
+
+                    sum5 += facilityFlows[i, j] * s;
+                }
+            }
+
+            double m1 = 1.0 / (n - k);
+            double m2 = 1.0 / (n - k - 1);
+
+            return (double)sum1 + (m1 * sum2) + (m1 * sum3) + (m1 * sum4) + (m1 * m2 * sum5);
+        }
     }
 }
