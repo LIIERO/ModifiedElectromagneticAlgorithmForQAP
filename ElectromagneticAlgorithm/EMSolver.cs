@@ -13,6 +13,8 @@ namespace ElectromagneticAlgorithm
         private int activeSolutionSampleSize;
         private int neighbourhoodDistance;
         private double attractionProbability; // Greater than 0, less than 1
+        private float subsetRatio;
+        private int k; // How many tries CEV crossovers have
         private ISolution[] solutionPopulation;
         private ISolution[] solutionPopulationSubset;
 
@@ -23,13 +25,15 @@ namespace ElectromagneticAlgorithm
         private bool saveBestSolutionData = false;
         private string bestSolutionDataPath;
 
-        public EMSolver(ISolution[] initialPopulation, int maxIter, int activeSolutionSampleSize, int neighbourhoodDistance, double attractionProbability)
+        public EMSolver(ISolution[] initialPopulation, int maxIter, int activeSolutionSampleSize, int neighbourhoodDistance, double attractionProbability, float subsetRatio, int k)
         {
             solutionPopulation = initialPopulation;
             this.maxIter = maxIter;
             this.activeSolutionSampleSize = activeSolutionSampleSize;
             this.neighbourhoodDistance = neighbourhoodDistance;
             this.attractionProbability = attractionProbability;
+            this.subsetRatio = subsetRatio;
+            this.k = k;
             random = new Random();
 
             //bestGlobalSolutionEver = initialPopulation[0];
@@ -51,7 +55,7 @@ namespace ElectromagneticAlgorithm
         }
 
 
-        public void RunAlgorithm(float subsetRatio=0.5f)
+        public void RunAlgorithm()
         {
             // Global iteration
             for (int i = 0; i < maxIter; i++)
@@ -85,15 +89,15 @@ namespace ElectromagneticAlgorithm
                     ISolution[] neighbouringSubset = ChooseSolutionsInHammingDistance(solution, betterObjectiveValueNeighbours);
 
                     if (isAttracting)
-                        AttractionInjection(solution, neighbouringSubset);
+                        Attraction(solution, neighbouringSubset, isExploring);
                     else
-                        RepulsionSwap(solution, neighbouringSubset);
+                        Repulsion(solution, neighbouringSubset, isExploring);
 
                     //AttractionInjection(solution, neighbouringSubset);
                 }
 
                 ISolution bestLocalSolution = GetBestSolutionFromPopulation();
-                int bestLocalSolutionCost = bestLocalSolution.GetCost();
+                double bestLocalSolutionCost = bestLocalSolution.GetCost();
 
                 if (bestLocalSolutionCost < bestGlobalSolutionEver.GetCost()) bestGlobalSolutionEver = bestLocalSolution.GetCopy();
 
@@ -123,13 +127,13 @@ namespace ElectromagneticAlgorithm
 
         private double GetSolutionCharge(ISolution solution)
         {
-            int bestSolutionCost = GetBestSolutionFromPopulation().GetCost();
+            double bestSolutionCost = GetBestSolutionFromPopulation().GetCost();
             return Math.Exp(-1 * ((solution.GetCost() - bestSolutionCost) / bestSolutionCost));
         }
 
         private ISolution[] ChooseSolutionsInHammingDistance(ISolution solution, bool betterObjectiveValue)
         {
-            int solutionCost = solution.GetCost();
+            double solutionCost = solution.GetCost();
             ISolution[] neighbouringSolutions = GetNeighbouringSolutions(solution, solutionPopulationSubset, neighbourhoodDistance);
             List<ISolution> solutions = new();
             foreach (ISolution neighbour in neighbouringSolutions)
@@ -170,7 +174,7 @@ namespace ElectromagneticAlgorithm
 
             foreach (ISolution sol in population)
             {
-                if (solution != sol && solution.GetHammingDistanceFromSolution(sol) <= maxNeighbouringDistance)
+                if (solution != sol && solution.GetDistanceFromSolution(sol) <= maxNeighbouringDistance)
                 {
                     neighbouringSolutions.Add(sol);
                 }
@@ -193,14 +197,14 @@ namespace ElectromagneticAlgorithm
             }
         }*/
 
-        public ISolution AttractionInjection(ISolution solution, ISolution[] neighbouringSolutions)
+        public ISolution Attraction(ISolution solution, ISolution[] neighbouringSolutions, bool exploration)
         {
             // Randomly choose the mapping section
-            Random random = new();
-            int solLen = solution.GetSolutionLength();
-            int r1 = random.Next(solLen); int r2 = random.Next(solLen);
-            while (r1 == r2) r2 = random.Next(solLen);
-            (int l, int r) = r2 > r1 ? (r1, r2) : (r2, r1);
+            //Random random = new();
+            //int solLen = solution.GetSolutionLength();
+            //int r1 = random.Next(solLen); int r2 = random.Next(solLen);
+            //while (r1 == r2) r2 = random.Next(solLen);
+            //(int l, int r) = r2 > r1 ? (r1, r2) : (r2, r1);
             //Console.WriteLine($"l = {l}, r = {r}");
 
             // Determine attraction forces for each neighbouring solution
@@ -211,59 +215,49 @@ namespace ElectromagneticAlgorithm
             for (int i = 0; i < d; i++)
             {
                 double solCharge = GetSolutionCharge(neighbouringSolutions[i]);
-                attractionForces[i] = solCharge / Math.Pow(solution.GetHammingDistanceFromSolution(neighbouringSolutions[i]), 2);
+                attractionForces[i] = solCharge / Math.Pow(solution.GetDistanceFromSolution(neighbouringSolutions[i]), 2);
             }
 
             // Insert a part of each solution to the mapping section of the given solution proportionally to the power of attraction
             double attractionForcesSum = attractionForces.Sum();
-            int lP = l;
+            //int lP = l;
 
             for (int i = 0; i < d; i++)
             {
-                double forceRatio = attractionForces[i] / attractionForcesSum;
+                //double forceRatio = attractionForces[i] / attractionForcesSum;
                 //Console.WriteLine(forceRatio);
-                int addedRange = (int)Math.Ceiling(forceRatio * solLen);
+                //int addedRange = (int)Math.Ceiling(forceRatio * solLen);
                 //Console.WriteLine(addedRange);
-                if (addedRange == 0) addedRange = 1;
-                if (addedRange == solLen) addedRange = solLen - 1;
+                //if (addedRange == 0) addedRange = 1;
+                //if (addedRange == solLen) addedRange = solLen - 1;
 
-                int rP = lP + addedRange;
-                rP %= solLen;
+                //int rP = lP + addedRange;
+                //rP %= solLen;
 
-                solution.CrossoverWithSolution(neighbouringSolutions[i], lP, rP);
-                lP = rP + 1;
-                lP %= solLen;
+                solution.PullTowardsSolution(neighbouringSolutions[i], attractionForces[i], neighbouringSolutions, attractionForces, k, exploration);
+                //lP = rP + 1;
+                //lP %= solLen;
             }
 
             return solution;
         }
 
-        public ISolution RepulsionSwap(ISolution solution, ISolution[] neighbouringSolutions)
+        public ISolution Repulsion(ISolution solution, ISolution[] neighbouringSolutions, bool exploration)
         {
             // Determine attraction forces for each neighbouring solution
             int d = neighbouringSolutions.Length;
             double[] attractionForces = new double[d];
-            int solLen = solution.GetSolutionLength();
+            //int solLen = solution.GetSolutionLength();
 
             for (int i = 0; i < d; i++)
             {
                 double solCharge = GetSolutionCharge(neighbouringSolutions[i]);
-                attractionForces[i] = solCharge / Math.Pow(solution.GetHammingDistanceFromSolution(neighbouringSolutions[i]), 2);
+                attractionForces[i] = solCharge / Math.Pow(solution.GetDistanceFromSolution(neighbouringSolutions[i]), 2);
             }
 
-            double attractionForcesSum = attractionForces.Sum();
-            int sameElementsSum = 0;
-            for (int j = 0; j < d; j++)
-                sameElementsSum += solLen - solution.GetHammingDistanceFromSolution(neighbouringSolutions[j]);
-            
             for (int i = 0; i < d; i++)
             {
-                int noElementsInSamePositions = solLen - solution.GetHammingDistanceFromSolution(neighbouringSolutions[i]);
-                double forceRatio = attractionForces[i] / attractionForcesSum;
-                
-                int noToSwap = Math.Min((int)Math.Ceiling(sameElementsSum * forceRatio), noElementsInSamePositions); // Wzór (4) praca WCH
-
-                solution.SwapElementsMatchingWithSolution(neighbouringSolutions[i], noToSwap);
+                solution.RepelFromSolution(neighbouringSolutions[i], attractionForces[i], neighbouringSolutions, attractionForces, k, exploration);
             }
 
             return solution;

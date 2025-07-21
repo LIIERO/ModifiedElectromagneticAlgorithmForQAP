@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,11 +13,13 @@ namespace ElectromagneticAlgorithm
     public class SolutionQAP : ISolution
     {
         public static int solutionLength;
-        private static int[,] facilityFlows;
-        private static int[,] locationDistances;
+        protected static int[,] facilityFlows;
+        protected static int[,] locationDistances;
 
-        private List<int> assignmentPermutation;
+        protected List<int> assignmentPermutation;
         //private int solutionLength;
+        protected Random random = new();
+        protected const int maxMatchingRegion = 6; // Maximum region of PMX
 
         public static void SetQAPData(int[,] flows, int[,] distances)
         {
@@ -97,7 +100,7 @@ namespace ElectromagneticAlgorithm
             Console.WriteLine();*/
         }
 
-        public static double GetAverageCost() // TODO: Popraw tak jak ma być czyli średnia dla danych wartości w danych miejscach
+        public static double GetAverageCost()
         {
             int sumFij = 0, sumDkl = 0; //, sumFii = 0, sumDkk = 0;
             int n = solutionLength;
@@ -139,7 +142,7 @@ namespace ElectromagneticAlgorithm
             return new SolutionQAP(GetSolutionRepresentation());
         }
 
-        public int GetCost()
+        public double GetCost()
         {
             int totalCost = 0;
             int n = solutionLength;
@@ -160,7 +163,29 @@ namespace ElectromagneticAlgorithm
             return totalCost;
         }
 
-        public void CrossoverWithSolution(ISolution secondSolution, int l, int r)
+        public virtual void PullTowardsSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration)
+        {
+            // Establish the mapping region randomly
+            int l = random.Next(solutionLength);
+            double forceRatio = secondSolForce / attractionForces.Sum();
+            int addedRange = (int)Math.Ceiling(forceRatio * solutionLength);
+            
+            //if (addedRange == solutionLength - 1) Console.WriteLine("WoW");
+            if (addedRange > maxMatchingRegion)
+            {
+                addedRange = maxMatchingRegion;
+                //addedRange = solutionLength - 1;
+                //Console.WriteLine(ToString());
+                //Console.WriteLine(secondSolution.ToString());
+            }
+            //Console.WriteLine(addedRange);
+            int r = (l + addedRange) % solutionLength;
+
+            // PMX
+            StandardPMX(secondSolution, l, r);
+        }
+
+        protected void StandardPMX(ISolution secondSolution, int l, int r)
         {
             //Console.WriteLine($"l = {l}, r = {r}");
 
@@ -213,8 +238,20 @@ namespace ElectromagneticAlgorithm
             //solution2.SetSolutionRepresentation(s2);
         }
 
-        public void SwapElementsMatchingWithSolution(ISolution secondSolution, int noElements)
+        public virtual void RepelFromSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration)
         {
+            int sameElementsSum = 0;
+            for (int j = 0; j < neighbouringSolutions.Length; j++)
+                sameElementsSum += solutionLength - (int)GetDistanceFromSolution(neighbouringSolutions[j]);
+
+            int noElementsInSamePositions = solutionLength - (int)GetDistanceFromSolution(secondSolution);
+            double forceRatio = secondSolForce / attractionForces.Sum();
+
+            int noElements = Math.Min((int)Math.Ceiling(sameElementsSum * forceRatio), noElementsInSamePositions); // Wzór (4) praca WCH
+            //Console.WriteLine($"Liczba zmienionych: {noElements}, max: {noElementsInSamePositions}");
+
+            if (noElements <= 1) return; // No use shuffling 1 or 0 elements
+
             SolutionQAP solution2 = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(secondSolution);
 
             // Get copies of solutions
@@ -222,20 +259,35 @@ namespace ElectromagneticAlgorithm
             List<int> s2 = new(solution2.GetSolutionRepresentation());
             AlgorithmUtils.ValidatePermutation(s2, solutionLength);
 
-            int noMatchingElements = 0;
             List<int> matchingElementsIndexes = new();
             for (int i = 0; i < solutionLength; i++)
             {
                 if (s1[i] == s2[i])
                 {
-                    noMatchingElements++;
                     matchingElementsIndexes.Add(i);
                 }
             }
 
             // We decide on elements we shuffle
-            // TODO: Shuffle so no index is left on it's original spot
-            AlgorithmUtils.Shuffle(matchingElementsIndexes);
+            List<int> matchingElementsIndexesCopy = new List<int>(matchingElementsIndexes);
+            bool badShuffle = true;
+            while (badShuffle) // Shuffling until we get something that has no elements left on original positions
+            {
+                badShuffle = false;
+                AlgorithmUtils.Shuffle(matchingElementsIndexes);
+                for (int i = 0; i < matchingElementsIndexes.Count; i++)
+                {
+                    if (matchingElementsIndexes[i] == matchingElementsIndexesCopy[i])
+                    {
+                        //Console.WriteLine("Bad shuffle");
+                        badShuffle = true;
+                        matchingElementsIndexes = new List<int>(matchingElementsIndexesCopy);
+                        break;
+                    }
+                }
+            }
+            //Console.WriteLine($"orig: {String.Join("; ", matchingElementsIndexesCopy)}, shuffle: {String.Join("; ", matchingElementsIndexes)}");
+
             List<int> indexesToShuffleUnsorted = matchingElementsIndexes.Take(noElements).ToList();
             List<int> indexesToShuffle = new List<int>(indexesToShuffleUnsorted);
             indexesToShuffle.Sort();
@@ -250,7 +302,7 @@ namespace ElectromagneticAlgorithm
             this.SetSolutionRepresentation(s1);
         }
 
-        public int GetHammingDistanceFromSolution(ISolution solution)
+        public double GetDistanceFromSolution(ISolution solution)
         {
             SolutionQAP sol = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(solution);
 
@@ -266,10 +318,10 @@ namespace ElectromagneticAlgorithm
             return hammingDistance;
         }
 
-        public int GetSolutionLength()
+        /*public int GetSolutionLength()
         {
             return solutionLength;
-        }
+        }*/
 
         public List<int> GetSolutionRepresentation()
         {

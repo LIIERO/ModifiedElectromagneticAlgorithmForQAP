@@ -31,17 +31,17 @@ public class EMTest
 
 
         // Test conditional value
-        int[] c = [int.MaxValue, 3, 6, 2, int.MaxValue, int.MaxValue, 5, 11, 9, int.MaxValue, int.MaxValue, 0];
-        double expVal = SolutionQAP.GetConditionalExpectedCost(c);
-        Console.WriteLine(expVal);
+        //int[] c = [int.MaxValue, 3, 6, 2, int.MaxValue, int.MaxValue, 5, 11, 9, int.MaxValue, int.MaxValue, 0];
+        //double expVal = SolutionQAP.GetConditionalExpectedCost(c);
+        //Console.WriteLine(expVal);
 
-        /*// Tworzenie początkowej populacji
+        // Tworzenie początkowej populacji
         int initialPopulationSize = 100;
-        SolutionQAP[] initialPopulation = new SolutionQAP[initialPopulationSize];
+        SolutionQAP_PMX1[] initialPopulation = new SolutionQAP_PMX1[initialPopulationSize];
 
         for (int i = 0; i < initialPopulationSize; i++)
         {
-            initialPopulation[i] = new SolutionQAP();
+            initialPopulation[i] = new SolutionQAP_PMX1();
             // TODO: W taki czy inny sposób zainicjalizuj populację początkową, metodę która to robi możesz przenieść do AlgorithmUtils
             // Na razie jest losowo
             List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
@@ -54,18 +54,20 @@ public class EMTest
         // Inicjalizacja algorytmu elektromagnetycznego
 
         // TODO: Parametry
-        int maxIter = 500;
+        int maxIter = 50;
         int activeSolutionSampleSize = 10; // TODO: Nieużyte
         int neighbourhoodDistance = 50;
-        double attractionProbability = 0.5;
+        double attractionProbability = 0.8;
+        float subsetRatio = 0.5f;
+        int k = 4;
 
-        EMSolver solver = new(initialPopulation, maxIter, activeSolutionSampleSize, neighbourhoodDistance, attractionProbability);
+        EMSolver solver = new(initialPopulation, maxIter, activeSolutionSampleSize, neighbourhoodDistance, attractionProbability, subsetRatio, k);
         solver.InitializeBestSolutionDataSaver("E:\\SzkolaProgramowanie\\Magisterka\\AlgorithmOutput\\bestSolutionData.csv");
 
         solver.PrintPopulation();
         solver.RunAlgorithm();
         solver.PrintPopulation();
 
-        Console.ReadLine();*/
+        Console.ReadLine();
     }
 }

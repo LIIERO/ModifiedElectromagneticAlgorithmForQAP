@@ -8,19 +8,19 @@ namespace ElectromagneticAlgorithm
 {
     public interface ISolution
     {
-        public static double GetAverageCost() { return -1; }
+        //public static double GetAverageCost() { return -1; }
 
-        public int GetCost();
+        public double GetCost();
 
-        public void CrossoverWithSolution(ISolution solution, int l, int r);
+        public void PullTowardsSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration); // CrossoverWithSolution
 
-        public void SwapElementsMatchingWithSolution(ISolution solution, int noElements);
+        public void RepelFromSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration); // SwapElementsMatchingWithSolution
 
-        public int GetHammingDistanceFromSolution(ISolution solution);
+        public double GetDistanceFromSolution(ISolution solution);
 
-        public static double GetConditionalExpectedCost(int[] c) { return -1; } // c -> partial solution with int.MaxValue in ambiguous spots.
+        //public static double GetConditionalExpectedCost(int[] c) { return -1; } // c -> partial solution with int.MaxValue in ambiguous spots.
 
-        public int GetSolutionLength();
+        //public int GetSolutionLength(); // TODO: usuń
         
         public ISolution GetCopy();
     }
