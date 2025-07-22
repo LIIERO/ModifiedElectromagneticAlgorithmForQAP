@@ -367,7 +367,7 @@ namespace ElectromagneticAlgorithm
             int n = solutionLength;
             int k = H.Length;
 
-            if (k >= n - 1) throw new Exception($"Set H is too large, H: {k}, N: {n}");
+            if (k >= n - 1) throw new Exception($"Set H is too large, H: {k}, N: {n}"); // n - k - 1 w mianowniku
 
             int[] N = Enumerable.Range(0, n).ToArray();
             int[] N_H = N.Except(H).ToArray(); // N\H

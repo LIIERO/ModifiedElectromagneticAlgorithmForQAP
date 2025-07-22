@@ -89,9 +89,9 @@ namespace ElectromagneticAlgorithm
                     ISolution[] neighbouringSubset = ChooseSolutionsInHammingDistance(solution, betterObjectiveValueNeighbours);
 
                     if (isAttracting)
-                        Attraction(solution, neighbouringSubset, isExploring);
+                        Attraction(solution, neighbouringSubset, !isExploring);
                     else
-                        Repulsion(solution, neighbouringSubset, isExploring);
+                        Repulsion(solution, neighbouringSubset, !isExploring);
 
                     //AttractionInjection(solution, neighbouringSubset);
                 }

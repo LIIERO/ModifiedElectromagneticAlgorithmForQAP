@@ -30,6 +30,15 @@ namespace ElectromagneticAlgorithm
             int l = 0, r = 0;
             double bestCost = exploration ? 0.0 : double.MaxValue;
             int bestl = 0;
+
+            if (addedRange <= 1)
+            {
+                l = random.Next(solutionLength);
+                r = (l + addedRange) % solutionLength;
+                StandardPMX(secondSolution, l, r);
+                return;
+            }
+
             for (int i = 0; i < k; i++)
             {
                 l = random.Next(solutionLength); // first index
@@ -59,7 +68,7 @@ namespace ElectromagneticAlgorithm
                     n %= solutionLength;
                 }
 
-                double newCost = GetConditionalExpectedCost(c1) + GetConditionalExpectedCost(c2);
+                double newCost = GetConditionalExpectedCost(c1); // + GetConditionalExpectedCost(c2);
                 if ((exploration && newCost > bestCost) || (!exploration && newCost < bestCost))
                 {
                     bestCost = newCost;

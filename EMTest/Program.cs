@@ -12,14 +12,15 @@ public class EMTest
         Console.WriteLine(SolutionQAP.GetAverageCost());
 
         /*// Test PMX
-        SolutionQAP s1 = new(); SolutionQAP s2 = new();
+        SolutionQAP_PMX2 s1 = new(); SolutionQAP_PMX2 s2 = new();
         s1.SetSolutionRepresentation(new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10, 11 });
         s2.SetSolutionRepresentation(new List<int> { 4, 5, 2, 1, 8, 7, 6, 9, 3, 11, 10, 0 });
 
-        s1.CrossoverWithSolution(s2, 6, 0);
+        s1.PullTowardsSolution(s2, 1.0, new SolutionQAP_PMX2[] { }, new double[] {1.0}, 3, false);
 
         Console.WriteLine(s1.ToString());
         Console.WriteLine(s2.ToString());
+        Console.WriteLine(s1.GetCost());
 
         Console.ReadLine();*/
 
@@ -37,11 +38,11 @@ public class EMTest
 
         // Tworzenie początkowej populacji
         int initialPopulationSize = 100;
-        SolutionQAP_PMX1[] initialPopulation = new SolutionQAP_PMX1[initialPopulationSize];
+        SolutionQAP_PMX2[] initialPopulation = new SolutionQAP_PMX2[initialPopulationSize];
 
         for (int i = 0; i < initialPopulationSize; i++)
         {
-            initialPopulation[i] = new SolutionQAP_PMX1();
+            initialPopulation[i] = new SolutionQAP_PMX2();
             // TODO: W taki czy inny sposób zainicjalizuj populację początkową, metodę która to robi możesz przenieść do AlgorithmUtils
             // Na razie jest losowo
             List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
