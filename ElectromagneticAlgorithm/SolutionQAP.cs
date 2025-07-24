@@ -13,13 +13,14 @@ namespace ElectromagneticAlgorithm
     public class SolutionQAP : ISolution
     {
         public static int solutionLength;
+        protected static int maxMatchingRegion; // Maximum region of that PMX can crossover
         protected static int[,] facilityFlows;
         protected static int[,] locationDistances;
 
         protected List<int> assignmentPermutation;
         //private int solutionLength;
         protected Random random = new();
-        protected const int maxMatchingRegion = 6; // Maximum region of PMX
+        
 
         public static void SetQAPData(int[,] flows, int[,] distances)
         {
@@ -30,10 +31,10 @@ namespace ElectromagneticAlgorithm
         // Wczytywanie danych facility flows, location distances z pliku
         public static void SetQAPData(string filePath)
         {
-
             string content = File.ReadAllText(filePath);
             string[] splittedContent = content.Split("\n");
             solutionLength = int.Parse(splittedContent[0]);
+            maxMatchingRegion = solutionLength / 2;
             //Console.WriteLine(solutionLength);
             //Console.WriteLine();
 

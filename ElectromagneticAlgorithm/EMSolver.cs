@@ -15,6 +15,8 @@ namespace ElectromagneticAlgorithm
         private double attractionProbability; // Greater than 0, less than 1
         private float subsetRatio;
         private int k; // How many tries CEV crossovers have
+        double entropyMin;
+        double entropyMax;
         private ISolution[] solutionPopulation;
         private ISolution[] solutionPopulationSubset;
 
@@ -25,7 +27,7 @@ namespace ElectromagneticAlgorithm
         private bool saveBestSolutionData = false;
         private string bestSolutionDataPath;
 
-        public EMSolver(ISolution[] initialPopulation, int maxIter, int activeSolutionSampleSize, int neighbourhoodDistance, double attractionProbability, float subsetRatio, int k)
+        public EMSolver(ISolution[] initialPopulation, int maxIter, int activeSolutionSampleSize, int neighbourhoodDistance, double attractionProbability, float subsetRatio, int k, double entropyMin, double entropyMax)
         {
             solutionPopulation = initialPopulation;
             this.maxIter = maxIter;
@@ -33,6 +35,8 @@ namespace ElectromagneticAlgorithm
             this.neighbourhoodDistance = neighbourhoodDistance;
             this.attractionProbability = attractionProbability;
             this.subsetRatio = subsetRatio;
+            this.entropyMin = entropyMin;
+            this.entropyMax = entropyMax;
             this.k = k;
             random = new Random();
 
@@ -57,6 +61,9 @@ namespace ElectromagneticAlgorithm
 
         public void RunAlgorithm()
         {
+            double minEntropy = double.MaxValue;
+            double maxEntropy = 0;
+
             // Global iteration
             for (int i = 0; i < maxIter; i++)
             {
@@ -67,14 +74,28 @@ namespace ElectromagneticAlgorithm
                 int populationSubsetSize = (int)(populationLength * subsetRatio);
                 solutionPopulationSubset = AlgorithmUtils.ChooseRandom(solutionPopulation, populationSubsetSize);
 
-                /*double entropy = Math.Exp(-10*i / (CalculateEntropy(solutionPopulation) * maxIter));
-                Console.WriteLine($"Entropy: {entropy}");
+                double popEntropy = CalculatePopulationEntropy(solutionPopulation);
+
+                if (popEntropy < minEntropy) minEntropy = popEntropy;
+                if (popEntropy > maxEntropy) maxEntropy = popEntropy;
+
+                /*Console.WriteLine($"Population entropy: {popEntropy}");
+                double normalizedEntropy = CalculateNormalizedPopulationEntropy(popEntropy, entropyMin, entropyMax, 0.0001);
+                Console.WriteLine($"Normalized entropy: {normalizedEntropy}");
+                double entropy = Math.Exp(-i / normalizedEntropy);
+                Console.WriteLine($"Calculated entropy: {entropy}");
+                //double entropy = normalizedEntropy;
 
                 bool isExploring = false;
                 if (random.NextDouble() < entropy)
                     isExploring = true;*/
 
+                // temporary
                 bool isExploring = true;
+                if (random.NextDouble() < attractionProbability)
+                    isExploring = false;
+
+                //bool isExploring = false;
 
                 bool isAttracting = false;
                 if (random.NextDouble() < attractionProbability)
@@ -89,9 +110,9 @@ namespace ElectromagneticAlgorithm
                     ISolution[] neighbouringSubset = ChooseSolutionsInHammingDistance(solution, betterObjectiveValueNeighbours);
 
                     if (isAttracting)
-                        Attraction(solution, neighbouringSubset, !isExploring);
+                        Attraction(solution, neighbouringSubset, isExploring);
                     else
-                        Repulsion(solution, neighbouringSubset, !isExploring);
+                        Repulsion(solution, neighbouringSubset, isExploring);
 
                     //AttractionInjection(solution, neighbouringSubset);
                 }
@@ -104,6 +125,9 @@ namespace ElectromagneticAlgorithm
                 if (saveBestSolutionData)
                     bestSolutionCSV.AppendLine($"{i},{bestLocalSolutionCost},{bestGlobalSolutionEver.GetCost()}");
             }
+
+            Console.WriteLine($"Min entropy: {minEntropy}");
+            Console.WriteLine($"Max entropy: {maxEntropy}");
 
             FinishAlgorithm();
         }
@@ -140,12 +164,12 @@ namespace ElectromagneticAlgorithm
             {
                 if (betterObjectiveValue)
                 {
-                    if (neighbour.GetCost() > solutionCost)
+                    if (neighbour.GetCost() < solutionCost)
                         solutions.Add(neighbour);
                 }
                 else
                 {
-                    if (neighbour.GetCost() < solutionCost)
+                    if (neighbour.GetCost() > solutionCost)
                         solutions.Add(neighbour);
                 }
             }
@@ -153,7 +177,12 @@ namespace ElectromagneticAlgorithm
             return solutions.ToArray();
         }
 
-        private double CalculateEntropy(ISolution[] population)
+        private double CalculateNormalizedPopulationEntropy(double popEntropy, double entropyMin, double entropyMax, double smallValue)
+        {
+            return (popEntropy - entropyMin) / (entropyMax - entropyMin + smallValue);
+        }
+
+        private double CalculatePopulationEntropy(ISolution[] population)
         {
             int d = population.Length;
             double entropy = 0;
@@ -164,7 +193,7 @@ namespace ElectromagneticAlgorithm
                 entropy += proportion * Math.Log2(proportion);
             }
 
-            Console.WriteLine(-entropy);
+            //Console.WriteLine(-entropy);
             return -entropy;
         }
 
