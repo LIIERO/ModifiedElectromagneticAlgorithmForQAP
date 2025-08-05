@@ -71,7 +71,7 @@ namespace ElectromagneticAlgorithm
             int[] cBest = new int[solutionLength];
             int[] cCopy = new int[solutionLength];
 
-            while (elementsToAdd.Count > 2)
+            while (elementsToAdd.Count > 1)
             {
                 double bestCost = exploration ? 0.0 : double.MaxValue;
                 List<int> elementsToAddBest = new(elementsToAdd);
@@ -122,7 +122,7 @@ namespace ElectromagneticAlgorithm
                 //Console.WriteLine($"Chosen one: {String.Join("; ", c)}");
             }
 
-            // Put the last 2 elements in
+            // Put the last elements in
             for (int i = 0; i < solutionLength; i++)
             {
                 if (c[i] == int.MaxValue)

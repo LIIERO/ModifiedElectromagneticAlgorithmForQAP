@@ -368,7 +368,26 @@ namespace ElectromagneticAlgorithm
             int n = solutionLength;
             int k = H.Length;
 
-            if (k >= n - 1) throw new Exception($"Set H is too large, H: {k}, N: {n}"); // n - k - 1 w mianowniku
+            // If there is only one loose value we can just insert it and calculate the cost normally
+            if (k == n - 1)
+            {
+                if (U.Length != 1) throw new Exception("Something went really wrong.");
+
+                for (int i = 0; i < solutionLength; i++)
+                {
+                    if (c[i] == int.MaxValue)
+                    {
+                        c[i] = U[0];
+                        break;
+                    }
+                }
+            }
+            
+            if (k >= n - 1) // throw new Exception($"Set H is too large, H: {k}, N: {n}"); // n - k - 1 w mianowniku
+            {
+                SolutionQAP s = new SolutionQAP(c.ToList());
+                return s.GetCost();
+            }
 
             int[] N = Enumerable.Range(0, n).ToArray();
             int[] N_H = N.Except(H).ToArray(); // N\H

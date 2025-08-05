@@ -5,7 +5,7 @@ public class EMTest
     public static void Main()
     {
 
-        string dataPath = @"E:\SzkolaProgramowanie\Magisterka\ModifiedElectromagneticAlgorithmForQAP\Data\chr25a.dat";
+        string dataPath = @"E:\SzkolaProgramowanie\Magisterka\ModifiedElectromagneticAlgorithmForQAP\Data\chr22b.dat";
         SolutionQAP.SetQAPData(dataPath);
         int solutionLength = SolutionQAP.solutionLength;
         Console.WriteLine(SolutionQAP.solutionLength);
@@ -29,19 +29,18 @@ public class EMTest
         int[] subset = AlgorithmUtils.ChooseRandom(ints, 4);
         foreach (int i in subset) Console.WriteLine(i);*/
 
-
         // Test conditional value
         //int[] c = [int.MaxValue, 3, 6, 2, int.MaxValue, int.MaxValue, 5, 11, 9, int.MaxValue, int.MaxValue, 0];
         //double expVal = SolutionQAP.GetConditionalExpectedCost(c);
         //Console.WriteLine(expVal);
 
         // Tworzenie początkowej populacji
-        int initialPopulationSize = 100;
-        SolutionQAP[] initialPopulation = new SolutionQAP[initialPopulationSize];
+        int initialPopulationSize = 200; // 200, 300
+        SolutionQAP_PMX2[] initialPopulation = new SolutionQAP_PMX2[initialPopulationSize];
 
         for (int i = 0; i < initialPopulationSize; i++)
         {
-            initialPopulation[i] = new SolutionQAP();
+            initialPopulation[i] = new SolutionQAP_PMX2();
             // TODO: W taki czy inny sposób zainicjalizuj populację początkową, metodę która to robi możesz przenieść do AlgorithmUtils
             // Na razie jest losowo
             List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
@@ -55,16 +54,20 @@ public class EMTest
 
         // TODO: Parametry
         int maxIter = 100;
+        int cycleIter = 100;
+        int bonusExploatationIter = 0;
         int activeSolutionSampleSize = 10; // TODO: Nieużyte
-        int neighbourhoodDistance = 25;
-        double attractionProbability = 0.8;
-        float subsetRatio = 0.5f;
+        int neighbourhoodDistance = 18;
+        int maxNeighbourhoodSize = 15;
+        double attractionProbability = 0.9;
+        float subsetRatio = 1f; // 1
         int k = 4;
-        double entropyMin = 6.582; // For 100 pop
-        double entropyMax = 6.644; // For 100 pop
+        double entropyMin = 7.54963; // For 200 pop
+        double entropyMax = 7.64195; // For 200 pop
+        string dataSaverPath = "E:\\SzkolaProgramowanie\\Magisterka\\AlgorithmOutput\\bestSolutionData.csv";
 
-        EMSolver solver = new(initialPopulation, maxIter, activeSolutionSampleSize, neighbourhoodDistance, attractionProbability, subsetRatio, k, entropyMin, entropyMax);
-        solver.InitializeBestSolutionDataSaver("E:\\SzkolaProgramowanie\\Magisterka\\AlgorithmOutput\\bestSolutionData.csv");
+        EMSolver solver = new(initialPopulation, maxIter, cycleIter, bonusExploatationIter, activeSolutionSampleSize, neighbourhoodDistance, maxNeighbourhoodSize, attractionProbability, subsetRatio, k, entropyMin, entropyMax);
+        solver.InitializeBestSolutionDataSaver(dataSaverPath);
 
         solver.PrintPopulation();
         solver.RunAlgorithm();
