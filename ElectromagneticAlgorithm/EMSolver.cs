@@ -12,7 +12,6 @@ namespace ElectromagneticAlgorithm
         private int maxIter;
         private int cycleIter;
         private int bonusExploatationIter;
-        private int activeSolutionSampleSize;
         private int neighbourhoodDistance;
         private int maxNeighbourhoodSize;
         private double attractionProbability; // Greater than 0, less than 1
@@ -30,13 +29,12 @@ namespace ElectromagneticAlgorithm
         private bool saveBestSolutionData = false;
         private string bestSolutionDataPath;
 
-        public EMSolver(ISolution[] initialPopulation, int maxIter, int cycleIter, int bonusExploatationIter, int activeSolutionSampleSize, int neighbourhoodDistance, int maxNeighbourhoodSize, double attractionProbability, float subsetRatio, int k, double entropyMin, double entropyMax)
+        public EMSolver(ISolution[] initialPopulation, int maxIter, int cycleIter, int bonusExploatationIter, int neighbourhoodDistance, int maxNeighbourhoodSize, double attractionProbability, float subsetRatio, int k, double entropyMin, double entropyMax)
         {
             solutionPopulation = initialPopulation;
             this.maxIter = maxIter;
             this.cycleIter = cycleIter;
             this.bonusExploatationIter = bonusExploatationIter;
-            this.activeSolutionSampleSize = activeSolutionSampleSize;
             this.neighbourhoodDistance = neighbourhoodDistance;
             this.maxNeighbourhoodSize = maxNeighbourhoodSize;
             this.attractionProbability = attractionProbability;
@@ -65,12 +63,14 @@ namespace ElectromagneticAlgorithm
         }
 
 
-        public void RunAlgorithm()
+        public (double bestSolution, long timeMs) RunAlgorithm()
         {
             double minEntropy = double.MaxValue;
             double maxEntropy = 0;
 
             int trueMaxIter = maxIter + bonusExploatationIter;
+
+            var watch = System.Diagnostics.Stopwatch.StartNew();
 
             // Global iteration
             for (int i = 0; i < trueMaxIter; i++)
@@ -96,10 +96,10 @@ namespace ElectromagneticAlgorithm
                     //double entropy = Math.Exp(-i / normalizedEntropy);
                     double explorationDecay = 1.0 - (i % cycleIter / (double)cycleIter);
                     Console.WriteLine($"Exploration decay: {explorationDecay}");
-                    double entropy = explorationDecay * normalizedEntropy;
-                    Console.WriteLine($"Calculated entropy: {entropy}");
+                    double entropyChance = explorationDecay * (1.0 - normalizedEntropy); // Im większa entropia tym mniejsza szansa na eksplorację
+                    Console.WriteLine($"Calculated chance: {entropyChance}");
 
-                    if (random.NextDouble() < entropy)
+                    if (random.NextDouble() < entropyChance)
                         isExploring = true;
                 }
 
@@ -144,16 +144,19 @@ namespace ElectromagneticAlgorithm
                     bestSolutionCSV.AppendLine($"{i},{bestLocalSolutionCost},{bestGlobalSolutionEver.GetCost()}");
             }
 
-            Console.WriteLine($"Min entropy: {minEntropy}");
-            Console.WriteLine($"Max entropy: {maxEntropy}");
+            watch.Stop();
+            long elapsedMs = watch.ElapsedMilliseconds;
+            
+            //Console.WriteLine($"Min entropy: {minEntropy}");
+            //Console.WriteLine($"Max entropy: {maxEntropy}");
 
             FinishAlgorithm();
+
+            return (bestGlobalSolutionEver.GetCost(), elapsedMs);
         }
 
         private void FinishAlgorithm()
         {
-            Console.WriteLine($"\nBest final solution cost: {bestGlobalSolutionEver.GetCost()}");
-
             if (saveBestSolutionData)
             {
                 File.WriteAllText(bestSolutionDataPath, bestSolutionCSV.ToString());
@@ -269,11 +272,12 @@ namespace ElectromagneticAlgorithm
             int d = neighbouringSolutions.Length;
             //Console.WriteLine(d);
             double[] attractionForces = new double[d];
+            double solutionCharge = GetSolutionCharge(solution);
 
             for (int i = 0; i < d; i++)
             {
-                double solCharge = GetSolutionCharge(neighbouringSolutions[i]);
-                attractionForces[i] = solCharge / Math.Pow(solution.GetDistanceFromSolution(neighbouringSolutions[i]), 2);
+                double charge = GetSolutionCharge(neighbouringSolutions[i]);
+                attractionForces[i] = (solutionCharge * charge) / Math.Pow(solution.GetDistanceFromSolution(neighbouringSolutions[i]), 2);
             }
 
             // Insert a part of each solution to the mapping section of the given solution proportionally to the power of attraction
@@ -306,11 +310,12 @@ namespace ElectromagneticAlgorithm
             int d = neighbouringSolutions.Length;
             double[] attractionForces = new double[d];
             //int solLen = solution.GetSolutionLength();
+            double solutionCharge = GetSolutionCharge(solution);
 
             for (int i = 0; i < d; i++)
             {
-                double solCharge = GetSolutionCharge(neighbouringSolutions[i]);
-                attractionForces[i] = solCharge / Math.Pow(solution.GetDistanceFromSolution(neighbouringSolutions[i]), 2);
+                double charge = GetSolutionCharge(neighbouringSolutions[i]);
+                attractionForces[i] = (solutionCharge * charge) / Math.Pow(solution.GetDistanceFromSolution(neighbouringSolutions[i]), 2);
             }
 
             for (int i = 0; i < d; i++)

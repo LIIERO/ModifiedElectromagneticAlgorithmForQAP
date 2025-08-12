@@ -329,11 +329,14 @@ namespace ElectromagneticAlgorithm
             return assignmentPermutation;
         }
 
-        public void SetSolutionRepresentation(List<int> repr)
+        public void SetSolutionRepresentation<T>(T repr)
         {
-            AlgorithmUtils.ValidatePermutation(repr, solutionLength);
+            if (typeof(T) != typeof(List<int>)) throw new Exception("Wrong representation type.");
+            List<int> repr2 = (List<int>)Convert.ChangeType(repr, typeof(List<int>));
 
-            assignmentPermutation = repr;
+            AlgorithmUtils.ValidatePermutation(repr2, solutionLength);
+
+            assignmentPermutation = repr2;
         }
 
         public override string ToString()

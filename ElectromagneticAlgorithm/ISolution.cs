@@ -9,6 +9,7 @@ namespace ElectromagneticAlgorithm
     public interface ISolution
     {
         //public static double GetAverageCost() { return -1; }
+        public void SetSolutionRepresentation<T>(T repr);
 
         public double GetCost();
 

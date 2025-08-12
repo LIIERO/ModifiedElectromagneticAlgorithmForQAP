@@ -1,15 +1,23 @@
 ﻿using ElectromagneticAlgorithm;
+using System.IO;
+using System.Reflection;
 
 public class EMTest
 {
     public static void Main()
     {
+        string exeDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        Console.WriteLine(exeDirectory);
+        //string pathStart = @"E:\SzkolaProgramowanie\Magisterka\ModifiedElectromagneticAlgorithmForQAP\Data\chr22";
+        Console.WriteLine("Podaj zbiór danych (a/b): ");
+        string dSet = Console.ReadLine();
+        string dataPath = exeDirectory + @"\Input\chr22" + dSet + ".dat";
 
-        string dataPath = @"E:\SzkolaProgramowanie\Magisterka\ModifiedElectromagneticAlgorithmForQAP\Data\chr22b.dat";
+        //string dataPath = @"E:\SzkolaProgramowanie\Magisterka\ModifiedElectromagneticAlgorithmForQAP\Data\chr22b.dat";
         SolutionQAP.SetQAPData(dataPath);
         int solutionLength = SolutionQAP.solutionLength;
-        Console.WriteLine(SolutionQAP.solutionLength);
-        Console.WriteLine(SolutionQAP.GetAverageCost());
+        Console.WriteLine($"Wymiarowość problemu {SolutionQAP.solutionLength}");
+        Console.WriteLine($"Średni koszt rozwiązania: {SolutionQAP.GetAverageCost()}");
 
         /*// Test PMX
         SolutionQAP_PMX2 s1 = new(); SolutionQAP_PMX2 s2 = new();
@@ -34,15 +42,32 @@ public class EMTest
         //double expVal = SolutionQAP.GetConditionalExpectedCost(c);
         //Console.WriteLine(expVal);
 
+
+        Console.WriteLine("Wybierz typ: 1 - std, 2 - PMX1, 3 - PMX2, 4 - RepCEV: ");
+        int nType = int.Parse(Console.ReadLine());
+
         // Tworzenie początkowej populacji
         int initialPopulationSize = 200; // 200, 300
-        SolutionQAP_PMX2[] initialPopulation = new SolutionQAP_PMX2[initialPopulationSize];
+        ISolution[] initialPopulation = new ISolution[initialPopulationSize];
 
         for (int i = 0; i < initialPopulationSize; i++)
         {
-            initialPopulation[i] = new SolutionQAP_PMX2();
-            // TODO: W taki czy inny sposób zainicjalizuj populację początkową, metodę która to robi możesz przenieść do AlgorithmUtils
-            // Na razie jest losowo
+            switch (nType)
+            {
+                case 2:
+                    initialPopulation[i] = new SolutionQAP_PMX1();
+                    break;
+                case 3:
+                    initialPopulation[i] = new SolutionQAP_PMX2();
+                    break;
+                case 4:
+                    initialPopulation[i] = new SolutionQAP_RepCEV();
+                    break;
+                default:
+                    initialPopulation[i] = new SolutionQAP();
+                    break;
+            }
+            
             List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
             AlgorithmUtils.Shuffle(newSolutionRepr);
 
@@ -56,22 +81,25 @@ public class EMTest
         int maxIter = 100;
         int cycleIter = 100;
         int bonusExploatationIter = 0;
-        int activeSolutionSampleSize = 10; // TODO: Nieużyte
         int neighbourhoodDistance = 18;
         int maxNeighbourhoodSize = 15;
-        double attractionProbability = 0.9;
-        float subsetRatio = 1f; // 1
-        int k = 4;
+        double attractionProbability = 0.8;
+        float subsetRatio = 1.0f; // 1
+        int k = 3;
         double entropyMin = 7.54963; // For 200 pop
         double entropyMax = 7.64195; // For 200 pop
-        string dataSaverPath = "E:\\SzkolaProgramowanie\\Magisterka\\AlgorithmOutput\\bestSolutionData.csv";
+        //string dataSaverPath = "E:\\SzkolaProgramowanie\\Magisterka\\AlgorithmOutput\\bestSolutionData.csv";
+        string dataSaverPath = exeDirectory + @"\Output\bestSolutionData.csv";
 
-        EMSolver solver = new(initialPopulation, maxIter, cycleIter, bonusExploatationIter, activeSolutionSampleSize, neighbourhoodDistance, maxNeighbourhoodSize, attractionProbability, subsetRatio, k, entropyMin, entropyMax);
+        EMSolver solver = new(initialPopulation, maxIter, cycleIter, bonusExploatationIter, neighbourhoodDistance, maxNeighbourhoodSize, attractionProbability, subsetRatio, k, entropyMin, entropyMax);
         solver.InitializeBestSolutionDataSaver(dataSaverPath);
 
         solver.PrintPopulation();
-        solver.RunAlgorithm();
+        (double bestSolution, long timeMs) result = solver.RunAlgorithm();
         solver.PrintPopulation();
+
+        Console.WriteLine($"\nBest final solution cost: {result.bestSolution}");
+        Console.WriteLine($"\nElapsed time (seconds): {result.timeMs / 1000.0}");
 
         Console.ReadLine();
     }
