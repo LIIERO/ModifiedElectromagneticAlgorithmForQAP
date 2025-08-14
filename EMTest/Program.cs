@@ -1,6 +1,7 @@
 ﻿using ElectromagneticAlgorithm;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 
 public class EMTest
 {
@@ -18,6 +19,15 @@ public class EMTest
         int solutionLength = SolutionQAP.solutionLength;
         Console.WriteLine($"Wymiarowość problemu {SolutionQAP.solutionLength}");
         Console.WriteLine($"Średni koszt rozwiązania: {SolutionQAP.GetAverageCost()}");
+
+
+        //// Random search
+        //SolutionQAP sol = new();
+        //sol.SetSolutionRepresentation<List<int>>(Enumerable.Range(0, solutionLength).ToList());
+        //RandomSearchQAP rs = new(sol);
+        //rs.Search(260000);
+        //return;
+
 
         /*// Test PMX
         SolutionQAP_PMX2 s1 = new(); SolutionQAP_PMX2 s2 = new();
@@ -47,7 +57,9 @@ public class EMTest
         int nType = int.Parse(Console.ReadLine());
 
         // Tworzenie początkowej populacji
-        int initialPopulationSize = 200; // 200, 300
+        //const int calculatedPopulationSize = 200;
+        Console.WriteLine("Podaj rozmiar populacji: ");
+        int initialPopulationSize = int.Parse(Console.ReadLine());
         ISolution[] initialPopulation = new ISolution[initialPopulationSize];
 
         for (int i = 0; i < initialPopulationSize; i++)
@@ -74,32 +86,84 @@ public class EMTest
             initialPopulation[i].SetSolutionRepresentation(newSolutionRepr);
         }
 
-
         // Inicjalizacja algorytmu elektromagnetycznego
-
-        // TODO: Parametry
-        int maxIter = 100;
-        int cycleIter = 100;
+        Console.WriteLine("Podaj liczbę iteracji: ");
+        int noIter = int.Parse(Console.ReadLine());
+        int maxIter = noIter;
+        int cycleIter = noIter;
         int bonusExploatationIter = 0;
-        int neighbourhoodDistance = 18;
-        int maxNeighbourhoodSize = 15;
-        double attractionProbability = 0.8;
+
+        Console.WriteLine("Podaj odległość sąsiedztwa: ");
+        int neighbourhoodDistance = int.Parse(Console.ReadLine()); // 18
+
+        Console.WriteLine("Podaj maksymalną liczebność sąsiedztwa: ");
+        int maxNeighbourhoodSize = int.Parse(Console.ReadLine()); // 15
+
+        Console.WriteLine("Podaj prawdopodobieństwo przyciągania: ");
+        double attractionProbability = double.Parse(Console.ReadLine()); // 0.8
         float subsetRatio = 1.0f; // 1
-        int k = 3;
-        double entropyMin = 7.54963; // For 200 pop
-        double entropyMax = 7.64195; // For 200 pop
+
+        Console.WriteLine("Podaj parametr k dla CEV: ");
+        int k = int.Parse(Console.ReadLine()); // 3
+
+        double entropyMin, entropyMax;
+        if (initialPopulationSize == 200)
+        {
+            entropyMin = 7.54963; // For 200 pop
+            entropyMax = 7.64195; // For 200 pop
+        }
+        else
+        {
+            Console.WriteLine("Podaj minimalną entropię: ");
+            entropyMin = double.Parse(Console.ReadLine());
+            Console.WriteLine("Podaj maksymalną entropię: ");
+            entropyMax = double.Parse(Console.ReadLine());
+        }
+
+        Console.WriteLine("Ile razy wywołać algorytm dla tych danych?: ");
+        int noAlgRuns = int.Parse(Console.ReadLine());
+
+        Console.WriteLine("Inicjalizować zapisywanie przebiegów? (t/n): ");
+        bool dataSaveInit = Console.ReadLine() == "t";
+
         //string dataSaverPath = "E:\\SzkolaProgramowanie\\Magisterka\\AlgorithmOutput\\bestSolutionData.csv";
         string dataSaverPath = exeDirectory + @"\Output\bestSolutionData.csv";
 
-        EMSolver solver = new(initialPopulation, maxIter, cycleIter, bonusExploatationIter, neighbourhoodDistance, maxNeighbourhoodSize, attractionProbability, subsetRatio, k, entropyMin, entropyMax);
-        solver.InitializeBestSolutionDataSaver(dataSaverPath);
 
-        solver.PrintPopulation();
-        (double bestSolution, long timeMs) result = solver.RunAlgorithm();
-        solver.PrintPopulation();
+        //solver.PrintPopulation();
+        (double bestSolution, long timeMs)[] algOutputs = new (double bestSolution, long timeMs)[noAlgRuns];
+        for (int i = 0; i < noAlgRuns; i++)
+        {
+            EMSolver solver = new(initialPopulation, maxIter, cycleIter, bonusExploatationIter, neighbourhoodDistance, maxNeighbourhoodSize, attractionProbability, subsetRatio, k, entropyMin, entropyMax);
+            if (dataSaveInit)
+                solver.InitializeBestSolutionDataSaver(dataSaverPath);
 
-        Console.WriteLine($"\nBest final solution cost: {result.bestSolution}");
-        Console.WriteLine($"\nElapsed time (seconds): {result.timeMs / 1000.0}");
+            (double bestSolution, long timeMs) result = solver.RunAlgorithm();
+            algOutputs[i] = result;
+
+            // Make new initial population
+            foreach (var sol in initialPopulation)
+            {
+                sol.ShuffleRepresentation();
+            }
+        }
+
+        //solver.PrintPopulation();
+        Console.WriteLine("\nAlg outputs: ");
+        for (int i = 0; i < noAlgRuns; i++)
+        {
+            Console.WriteLine($"Run {i}: val {algOutputs[i].bestSolution}, time {algOutputs[i].timeMs / 1000.0} sec.");
+        }
+
+        (double bestSolution, long timeMs) bestOutput = algOutputs.MinBy(o => o.bestSolution);
+        (double bestSolution, long timeMs) worstOutput = algOutputs.MaxBy(o => o.bestSolution);
+        double averageOutput = algOutputs.Sum(o => o.bestSolution) / noAlgRuns;
+        double averageTime = algOutputs.Sum(o => o.timeMs) / (double)noAlgRuns;
+
+        Console.WriteLine($"\nBest of all: val {bestOutput.bestSolution}, time {bestOutput.timeMs / 1000.0} sec.");
+        Console.WriteLine($"Worst of all: val {worstOutput.bestSolution}, time {worstOutput.timeMs / 1000.0} sec.");
+
+        Console.WriteLine($"\nAverage output: {averageOutput}, average time {averageTime / 1000.0} sec.");
 
         Console.ReadLine();
     }

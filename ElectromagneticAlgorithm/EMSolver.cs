@@ -44,6 +44,9 @@ namespace ElectromagneticAlgorithm
             this.k = k;
             random = new Random();
 
+            Console.WriteLine("\n\nModified EM algorithm.");
+            Console.WriteLine($"P_init_size = {initialPopulation.Length}, I_max = {maxIter}, d_max = {neighbourhoodDistance}, s_max = {maxNeighbourhoodSize}, p_A = {attractionProbability}, k = {k}");
+
             //bestGlobalSolutionEver = initialPopulation[0];
             //UpdateBestGlobalSolution();
             bestGlobalSolutionEver = GetBestSolutionFromPopulation().GetCopy();
@@ -119,7 +122,7 @@ namespace ElectromagneticAlgorithm
 
                 bool betterObjectiveValueNeighbours = (isExploring && !isAttracting) || (!isExploring && isAttracting);
 
-                foreach (ISolution solution in solutionPopulationSubset)
+                /*foreach (ISolution solution in solutionPopulationSubset)
                 {
                     ISolution[] neighbouringSubset = ChooseSolutionsInHammingDistance(solution, betterObjectiveValueNeighbours);
 
@@ -129,7 +132,23 @@ namespace ElectromagneticAlgorithm
                         Repulsion(solution, neighbouringSubset, isExploring);
 
                     //AttractionInjection(solution, neighbouringSubset);
-                }
+                }*/
+
+                // Kopiowanie aktywnej populacji w celu uniknięcia nieścisłości w wykonywaniu ruchów
+                ISolution[] popSubsetCopy = new ISolution[populationSubsetSize];
+                for (int idx = 0; idx < populationSubsetSize; idx++)
+                    popSubsetCopy[idx] = solutionPopulationSubset[idx].GetCopy();
+                
+
+                Parallel.ForEach(solutionPopulationSubset, solution =>
+                {
+                    ISolution[] neighbouringSubset = ChooseSolutionsInHammingDistance(solution, betterObjectiveValueNeighbours, popSubsetCopy);
+
+                    if (isAttracting)
+                        Attraction(solution, neighbouringSubset, isExploring);
+                    else
+                        Repulsion(solution, neighbouringSubset, isExploring);
+                });
 
                 ISolution bestLocalSolution = GetBestSolutionFromPopulation();
                 double bestLocalSolutionCost = bestLocalSolution.GetCost();
@@ -176,10 +195,10 @@ namespace ElectromagneticAlgorithm
             return Math.Exp(-1 * ((solution.GetCost() - bestSolutionCost) / bestSolutionCost));
         }
 
-        private ISolution[] ChooseSolutionsInHammingDistance(ISolution solution, bool betterObjectiveValue)
+        private ISolution[] ChooseSolutionsInHammingDistance(ISolution solution, bool betterObjectiveValue, ISolution[] population)
         {
             double solutionCost = solution.GetCost();
-            ISolution[] neighbouringSolutions = GetNeighbouringSolutions(solution, solutionPopulationSubset, neighbourhoodDistance);
+            ISolution[] neighbouringSolutions = GetNeighbouringSolutions(solution, population, neighbourhoodDistance);
             List<ISolution> solutions = new();
             foreach (ISolution neighbour in neighbouringSolutions)
             {
