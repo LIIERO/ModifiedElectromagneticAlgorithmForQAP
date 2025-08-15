@@ -71,7 +71,7 @@ public class EMTest
         Console.WriteLine("Podaj rozmiar populacji: ");
         int initialPopulationSize = int.Parse(Console.ReadLine());
 
-        ISolution[] initialPopulation = CreateInitialPopulation(solutionLength, initialPopulationSize, nType, seed);
+        ISolution[] initialPopulation = AlgorithmUtils.CreateInitialPopulationForQAP(solutionLength, initialPopulationSize, nType, seed);
 
         // Inicjalizacja algorytmu elektromagnetycznego
         Console.WriteLine("Podaj liczbę iteracji: ");
@@ -132,7 +132,7 @@ public class EMTest
             {
                 Console.WriteLine("New init pop");
                 seed += incrementSeedVal;
-                initialPopulation = CreateInitialPopulation(solutionLength, initialPopulationSize, nType, seed);
+                initialPopulation = AlgorithmUtils.CreateInitialPopulationForQAP(solutionLength, initialPopulationSize, nType, seed);
             }
         }
 
@@ -143,52 +143,20 @@ public class EMTest
             Console.WriteLine($"Run {i}: val {algOutputs[i].bestSolution}, time {algOutputs[i].timeMs / 1000.0} sec.");
         }
 
-        double[] bestSolutions = new double[noAlgRuns];
-
         (double bestSolution, long timeMs) bestOutput = algOutputs.MinBy(o => o.bestSolution);
         (double bestSolution, long timeMs) worstOutput = algOutputs.MaxBy(o => o.bestSolution);
         double averageOutput = algOutputs.Sum(o => o.bestSolution) / noAlgRuns;
         double averageTime = algOutputs.Sum(o => o.timeMs) / (double)noAlgRuns;
 
+        var bestSolutionOutputs = from el in algOutputs select el.bestSolution;
+        var timeOutputs = from el in algOutputs select (double)el.timeMs;
+
         Console.WriteLine($"\nBest of all: val {bestOutput.bestSolution}, time {bestOutput.timeMs / 1000.0} sec.");
         Console.WriteLine($"Worst of all: val {worstOutput.bestSolution}, time {worstOutput.timeMs / 1000.0} sec.");
 
         Console.WriteLine($"\nAverage output: {averageOutput}, average time {averageTime / 1000.0} sec.");
+        Console.WriteLine($"\nstd output: {AlgorithmUtils.CalculateStandardDeviation(bestSolutionOutputs)}, std time {AlgorithmUtils.CalculateStandardDeviation(timeOutputs) / 1000.0} sec.");
 
         Console.ReadLine();
-    }
-
-
-    public static ISolution[] CreateInitialPopulation(int solutionLength, int initialPopulationSize, int nType, int seed)
-    {
-        Console.WriteLine($"{solutionLength}, {initialPopulationSize}, {nType}, {seed}");
-
-        ISolution[] initialPopulation = new ISolution[initialPopulationSize];
-
-        for (int i = 0; i < initialPopulationSize; i++)
-        {
-            switch (nType)
-            {
-                case 2:
-                    initialPopulation[i] = new SolutionQAP_PMX1();
-                    break;
-                case 3:
-                    initialPopulation[i] = new SolutionQAP_PMX2();
-                    break;
-                case 4:
-                    initialPopulation[i] = new SolutionQAP_RepCEV();
-                    break;
-                default:
-                    initialPopulation[i] = new SolutionQAP();
-                    break;
-            }
-
-            List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
-            AlgorithmUtils.Shuffle(newSolutionRepr, seed + i);
-
-            initialPopulation[i].SetSolutionRepresentation(newSolutionRepr);
-        }
-
-        return initialPopulation;
     }
 }

@@ -148,6 +148,58 @@ namespace ElectromagneticAlgorithm
             return sample;
         }
 
+        public static double CalculateStandardDeviation(IEnumerable<double> values)
+        {
+            double standardDeviation = 0;
+
+            if (values.Any())
+            {
+                // Compute the average.     
+                double avg = values.Average();
+
+                // Perform the Sum of (value-avg)_2_2.      
+                double sum = values.Sum(d => Math.Pow(d - avg, 2));
+
+                // Put it all together.      
+                standardDeviation = Math.Sqrt((sum) / (values.Count() - 1));
+            }
+
+            return standardDeviation;
+        } // Źródło: https://stackoverflow.com/questions/3141692/standard-deviation-of-generic-list
+
+        public static ISolution[] CreateInitialPopulationForQAP(int solutionLength, int initialPopulationSize, int nType, int seed)
+        {
+            Console.WriteLine($"{solutionLength}, {initialPopulationSize}, {nType}, {seed}");
+
+            ISolution[] initialPopulation = new ISolution[initialPopulationSize];
+
+            for (int i = 0; i < initialPopulationSize; i++)
+            {
+                switch (nType)
+                {
+                    case 2:
+                        initialPopulation[i] = new SolutionQAP_PMX1();
+                        break;
+                    case 3:
+                        initialPopulation[i] = new SolutionQAP_PMX2();
+                        break;
+                    case 4:
+                        initialPopulation[i] = new SolutionQAP_RepCEV();
+                        break;
+                    default:
+                        initialPopulation[i] = new SolutionQAP();
+                        break;
+                }
+
+                List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
+                AlgorithmUtils.Shuffle(newSolutionRepr, seed + i);
+
+                initialPopulation[i].SetSolutionRepresentation(newSolutionRepr);
+            }
+
+            return initialPopulation;
+        } // Źródło: Opracowanie własne
+
         // Exceptions
         public class InvalidSolutionException : Exception
         {
