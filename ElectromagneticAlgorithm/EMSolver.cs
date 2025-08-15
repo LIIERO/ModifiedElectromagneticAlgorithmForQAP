@@ -31,7 +31,10 @@ namespace ElectromagneticAlgorithm
 
         public EMSolver(ISolution[] initialPopulation, int maxIter, int cycleIter, int bonusExploatationIter, int neighbourhoodDistance, int maxNeighbourhoodSize, double attractionProbability, float subsetRatio, int k, double entropyMin, double entropyMax)
         {
-            solutionPopulation = initialPopulation;
+            solutionPopulation = new ISolution[initialPopulation.Length];
+            for (int i = 0; i < initialPopulation.Length; i++)
+                solutionPopulation[i] = initialPopulation[i].GetCopy();
+            
             this.maxIter = maxIter;
             this.cycleIter = cycleIter;
             this.bonusExploatationIter = bonusExploatationIter;
@@ -56,10 +59,10 @@ namespace ElectromagneticAlgorithm
         ~EMSolver() { }
 
 
-        public void InitializeBestSolutionDataSaver(string absolutePath)
+        public void InitializeBestSolutionDataSaver(string directoryAbsolutePath, int fileNumber)
         {
             saveBestSolutionData = true;
-            bestSolutionDataPath = absolutePath;
+            bestSolutionDataPath = directoryAbsolutePath + @"\bestSolutionData" + fileNumber.ToString() + ".csv";
 
             bestSolutionCSV = new StringBuilder();
             bestSolutionCSV.AppendLine("Iteration,Best local solution cost,Best global solution cost"); // TODO: Więcej parametrów
@@ -199,33 +202,45 @@ namespace ElectromagneticAlgorithm
         {
             double solutionCost = solution.GetCost();
             ISolution[] neighbouringSolutions = GetNeighbouringSolutions(solution, population, neighbourhoodDistance);
-            List<ISolution> solutions = new();
+            List<ISolution> neighbourhood = new();
             foreach (ISolution neighbour in neighbouringSolutions)
             {
                 if (betterObjectiveValue) // Better means smaller
                 {
                     if (neighbour.GetCost() < solutionCost)
-                        solutions.Add(neighbour);
+                        neighbourhood.Add(neighbour);
                 }
                 else
                 {
                     if (neighbour.GetCost() > solutionCost)
-                        solutions.Add(neighbour);
+                        neighbourhood.Add(neighbour);
                 }
             }
 
-            if (solutions.Count <= maxNeighbourhoodSize) return solutions.ToArray();
+            if (neighbourhood.Count <= maxNeighbourhoodSize)
+            {
+                // Ordering from worst to best so the strongest solutions have the impact last (unless negative neig)
+                AlgorithmUtils.Shuffle(neighbourhood);
+                /*if (betterObjectiveValue) neighbourhood.OrderBy(sol => -sol.GetCost());
+                else neighbourhood.OrderBy(sol => sol.GetCost());*/
+                //neighbourhood.OrderBy(sol => sol.GetCost());
+                return neighbourhood.ToArray();
+            }
 
             //Console.Write("Trim");
             //solutions.Shuffle();
             if (betterObjectiveValue) // Take n best or worst solutions
-                solutions.OrderBy(sol => sol.GetCost());
+                neighbourhood.OrderBy(sol => sol.GetCost());
             else
-                solutions.OrderBy(sol => -sol.GetCost());
+                neighbourhood.OrderBy(sol => -sol.GetCost());
+            List<ISolution> neighbourhoodTrimmed = neighbourhood.Take(maxNeighbourhoodSize).ToList();
 
-            List<ISolution> solutionsTrimmed = solutions.Take(maxNeighbourhoodSize).ToList();
-            
-            return solutionsTrimmed.ToArray();
+            // Ordering from worst to best so the strongest solutions have the impact last (unless negative neig)
+            AlgorithmUtils.Shuffle(neighbourhoodTrimmed);
+            /*if (betterObjectiveValue) neighbourhoodTrimmed.OrderBy(sol => -sol.GetCost());
+            else neighbourhoodTrimmed.OrderBy(sol => sol.GetCost());*/
+            //neighbourhoodTrimmed.OrderBy(sol => sol.GetCost());
+            return neighbourhoodTrimmed.ToArray();
         }
 
         private double CalculateNormalizedPopulationEntropy(double popEntropy, double entropyMin, double entropyMax, double smallValue)
@@ -348,7 +363,7 @@ namespace ElectromagneticAlgorithm
         public void PrintPopulation()
         {
             Console.WriteLine("\nPopulation:");
-            foreach(ISolution solution in solutionPopulation) // TODO: działa z QAP solution, znajdź czemu nie działa z interfejsem
+            foreach(ISolution solution in solutionPopulation)
             {
                 Console.WriteLine(solution.ToString());
                 Console.WriteLine(solution.GetCost());

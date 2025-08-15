@@ -332,7 +332,7 @@ namespace ElectromagneticAlgorithm
 
         public List<int> GetSolutionRepresentation()
         {
-            return assignmentPermutation;
+            return new List<int>(assignmentPermutation);
         }
 
         public void SetSolutionRepresentation<T>(T repr)
@@ -345,9 +345,9 @@ namespace ElectromagneticAlgorithm
             assignmentPermutation = repr2;
         }
 
-        public void ShuffleRepresentation()
+        public void ShuffleRepresentation(int? seed = null)
         {
-            AlgorithmUtils.Shuffle(assignmentPermutation);
+            AlgorithmUtils.Shuffle(assignmentPermutation, seed);
         }
 
         public override string ToString()

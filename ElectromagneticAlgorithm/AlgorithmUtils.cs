@@ -8,8 +8,6 @@ namespace ElectromagneticAlgorithm
 {
     public static class AlgorithmUtils
     {
-        private static Random rng = new Random();
-
         internal class Map<T1, T2> // Źródło: https://stackoverflow.com/questions/10966331/two-way-bidirectional-dictionary-in-c
         {
             private Dictionary<T1, T2> _forward = new Dictionary<T1, T2>();
@@ -71,8 +69,20 @@ namespace ElectromagneticAlgorithm
                 throw new MismatchedSolutionException();
         }
 
-        public static void Shuffle<T>(this IList<T> list) // Źródło: https://stackoverflow.com/questions/273313/randomize-a-listt
+        public static void Shuffle<T>(this IList<T> list, int? seed = null) // Źródło: https://stackoverflow.com/questions/273313/randomize-a-listt
         {
+            Random rng;
+            if (seed == null)
+                rng = new Random();
+            else
+            {
+                int intSeed = (int)seed;
+                rng = new Random(intSeed);
+            }
+
+            //Random rng = seed == null ? new Random() : new Random((int)seed);
+            //Random rng = new Random();
+
             int n = list.Count;
             while (n > 1)
             {

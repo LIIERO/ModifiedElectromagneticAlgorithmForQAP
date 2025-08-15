@@ -52,6 +52,16 @@ public class EMTest
         //double expVal = SolutionQAP.GetConditionalExpectedCost(c);
         //Console.WriteLine(expVal);
 
+        Console.WriteLine("Ile razy wywołać algorytm?: ");
+        int noAlgRuns = int.Parse(Console.ReadLine());
+
+        Console.WriteLine("Podaj ziarno losowania populacji początkowej: ");
+        int seed = int.Parse(Console.ReadLine());
+
+        Console.WriteLine("Co ile wywołań zmienić ziarno? (inkrementacja o 10000): ");
+        int incrementSeed = int.Parse(Console.ReadLine());
+        int incrementSeedVal = 10000;
+
 
         Console.WriteLine("Wybierz typ: 1 - std, 2 - PMX1, 3 - PMX2, 4 - RepCEV: ");
         int nType = int.Parse(Console.ReadLine());
@@ -60,31 +70,8 @@ public class EMTest
         //const int calculatedPopulationSize = 200;
         Console.WriteLine("Podaj rozmiar populacji: ");
         int initialPopulationSize = int.Parse(Console.ReadLine());
-        ISolution[] initialPopulation = new ISolution[initialPopulationSize];
 
-        for (int i = 0; i < initialPopulationSize; i++)
-        {
-            switch (nType)
-            {
-                case 2:
-                    initialPopulation[i] = new SolutionQAP_PMX1();
-                    break;
-                case 3:
-                    initialPopulation[i] = new SolutionQAP_PMX2();
-                    break;
-                case 4:
-                    initialPopulation[i] = new SolutionQAP_RepCEV();
-                    break;
-                default:
-                    initialPopulation[i] = new SolutionQAP();
-                    break;
-            }
-            
-            List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
-            AlgorithmUtils.Shuffle(newSolutionRepr);
-
-            initialPopulation[i].SetSolutionRepresentation(newSolutionRepr);
-        }
+        ISolution[] initialPopulation = CreateInitialPopulation(solutionLength, initialPopulationSize, nType, seed);
 
         // Inicjalizacja algorytmu elektromagnetycznego
         Console.WriteLine("Podaj liczbę iteracji: ");
@@ -120,14 +107,11 @@ public class EMTest
             entropyMax = double.Parse(Console.ReadLine());
         }
 
-        Console.WriteLine("Ile razy wywołać algorytm dla tych danych?: ");
-        int noAlgRuns = int.Parse(Console.ReadLine());
-
         Console.WriteLine("Inicjalizować zapisywanie przebiegów? (t/n): ");
         bool dataSaveInit = Console.ReadLine() == "t";
 
         //string dataSaverPath = "E:\\SzkolaProgramowanie\\Magisterka\\AlgorithmOutput\\bestSolutionData.csv";
-        string dataSaverPath = exeDirectory + @"\Output\bestSolutionData.csv";
+        string dataSaverPath = exeDirectory + @"\Output";
 
 
         //solver.PrintPopulation();
@@ -136,15 +120,19 @@ public class EMTest
         {
             EMSolver solver = new(initialPopulation, maxIter, cycleIter, bonusExploatationIter, neighbourhoodDistance, maxNeighbourhoodSize, attractionProbability, subsetRatio, k, entropyMin, entropyMax);
             if (dataSaveInit)
-                solver.InitializeBestSolutionDataSaver(dataSaverPath);
+                solver.InitializeBestSolutionDataSaver(dataSaverPath, i);
+
+            solver.PrintPopulation();
 
             (double bestSolution, long timeMs) result = solver.RunAlgorithm();
             algOutputs[i] = result;
 
             // Make new initial population
-            foreach (var sol in initialPopulation)
+            if ((i + 1) % incrementSeed == 0)
             {
-                sol.ShuffleRepresentation();
+                Console.WriteLine("New init pop");
+                seed += incrementSeedVal;
+                initialPopulation = CreateInitialPopulation(solutionLength, initialPopulationSize, nType, seed);
             }
         }
 
@@ -154,6 +142,8 @@ public class EMTest
         {
             Console.WriteLine($"Run {i}: val {algOutputs[i].bestSolution}, time {algOutputs[i].timeMs / 1000.0} sec.");
         }
+
+        double[] bestSolutions = new double[noAlgRuns];
 
         (double bestSolution, long timeMs) bestOutput = algOutputs.MinBy(o => o.bestSolution);
         (double bestSolution, long timeMs) worstOutput = algOutputs.MaxBy(o => o.bestSolution);
@@ -166,5 +156,39 @@ public class EMTest
         Console.WriteLine($"\nAverage output: {averageOutput}, average time {averageTime / 1000.0} sec.");
 
         Console.ReadLine();
+    }
+
+
+    public static ISolution[] CreateInitialPopulation(int solutionLength, int initialPopulationSize, int nType, int seed)
+    {
+        Console.WriteLine($"{solutionLength}, {initialPopulationSize}, {nType}, {seed}");
+
+        ISolution[] initialPopulation = new ISolution[initialPopulationSize];
+
+        for (int i = 0; i < initialPopulationSize; i++)
+        {
+            switch (nType)
+            {
+                case 2:
+                    initialPopulation[i] = new SolutionQAP_PMX1();
+                    break;
+                case 3:
+                    initialPopulation[i] = new SolutionQAP_PMX2();
+                    break;
+                case 4:
+                    initialPopulation[i] = new SolutionQAP_RepCEV();
+                    break;
+                default:
+                    initialPopulation[i] = new SolutionQAP();
+                    break;
+            }
+
+            List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
+            AlgorithmUtils.Shuffle(newSolutionRepr, seed + i);
+
+            initialPopulation[i].SetSolutionRepresentation(newSolutionRepr);
+        }
+
+        return initialPopulation;
     }
 }

@@ -10,7 +10,7 @@ namespace ElectromagneticAlgorithm
     {
         //public static double GetAverageCost() { return -1; }
         public void SetSolutionRepresentation<T>(T repr);
-        public void ShuffleRepresentation();
+        public void ShuffleRepresentation(int? seed = null);
 
         public double GetCost();
 
