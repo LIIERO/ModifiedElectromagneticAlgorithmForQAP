@@ -17,10 +17,16 @@ namespace ElectromagneticAlgorithm
         protected static int[,] facilityFlows;
         protected static int[,] locationDistances;
 
-        protected List<int> assignmentPermutation;
+        protected List<int>? assignmentPermutation;
         //private int solutionLength;
         protected Random random = new();
-        
+
+        public virtual ISolution GetCopy()
+        {
+            SolutionQAP newSolution = new();
+            newSolution.SetSolutionRepresentation(GetSolutionRepresentation());
+            return newSolution;
+        }
 
         public static void SetQAPData(int[,] flows, int[,] distances)
         {
@@ -127,21 +133,11 @@ namespace ElectromagneticAlgorithm
             return n_s * sumFij * sumDkl; // + ((1.0/n) * sumFii * sumDkk);
         }
 
-        private SolutionQAP(List<int> solutionRepresentation)
-        {
-            if (facilityFlows == null || locationDistances == null) throw new AlgorithmUtils.SolutionNotInitializedException();
 
-            assignmentPermutation = new List<int>(solutionRepresentation);
-        }
-
-        public SolutionQAP() : this(Enumerable.Range(0, solutionLength).ToList()) { }
+        //public SolutionQAP() : this(Enumerable.Range(0, solutionLength).ToList()) { }
 
         //private SolutionQAP(SolutionQAP solution) : this(solution.GetSolutionRepresentation()) { }
 
-        public ISolution GetCopy()
-        {
-            return new SolutionQAP(GetSolutionRepresentation());
-        }
 
         public double GetCost()
         {
@@ -342,7 +338,7 @@ namespace ElectromagneticAlgorithm
 
             AlgorithmUtils.ValidatePermutation(repr2, solutionLength);
 
-            assignmentPermutation = repr2;
+            assignmentPermutation = new List<int>(repr2);
         }
 
         public void ShuffleRepresentation(int? seed = null)
@@ -361,7 +357,6 @@ namespace ElectromagneticAlgorithm
 
             return sb.ToString();
         }
-
 
         public static double GetConditionalExpectedCost(int[] c)
         {
@@ -399,7 +394,8 @@ namespace ElectromagneticAlgorithm
             
             if (k >= n - 1) // throw new Exception($"Set H is too large, H: {k}, N: {n}"); // n - k - 1 w mianowniku
             {
-                SolutionQAP s = new SolutionQAP(c.ToList());
+                SolutionQAP s = new SolutionQAP();
+                s.SetSolutionRepresentation(c.ToList());
                 return s.GetCost();
             }
 

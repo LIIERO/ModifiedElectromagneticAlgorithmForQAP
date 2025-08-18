@@ -12,6 +12,13 @@ namespace ElectromagneticAlgorithm
 {
     public class SolutionQAP_RepCEV : SolutionQAP
     {
+        public override ISolution GetCopy()
+        {
+            SolutionQAP_RepCEV newSolution = new();
+            newSolution.SetSolutionRepresentation(GetSolutionRepresentation());
+            return newSolution;
+        }
+
         public override void RepelFromSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration)
         {
             int sameElementsSum = 0;

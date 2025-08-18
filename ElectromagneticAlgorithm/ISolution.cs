@@ -8,9 +8,11 @@ namespace ElectromagneticAlgorithm
 {
     public interface ISolution
     {
-        //public static double GetAverageCost() { return -1; }
-        public void SetSolutionRepresentation<T>(T repr);
-        public void ShuffleRepresentation(int? seed = null);
+        public void SetSolutionRepresentation<T>(T repr); // Optional - not used by EM
+
+        public void ShuffleRepresentation(int? seed = null); // Optional - not used by EM
+
+        public ISolution GetCopy();
 
         public double GetCost();
 
@@ -19,11 +21,5 @@ namespace ElectromagneticAlgorithm
         public void RepelFromSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration); // SwapElementsMatchingWithSolution
 
         public double GetDistanceFromSolution(ISolution solution);
-
-        //public static double GetConditionalExpectedCost(int[] c) { return -1; } // c -> partial solution with int.MaxValue in ambiguous spots.
-
-        //public int GetSolutionLength(); // TODO: usuń
-        
-        public ISolution GetCopy();
     }
 }

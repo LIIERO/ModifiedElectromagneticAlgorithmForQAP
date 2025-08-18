@@ -81,7 +81,7 @@ namespace ElectromagneticAlgorithm
             // Global iteration
             for (int i = 0; i < trueMaxIter; i++)
             {
-                Console.WriteLine($"\nIteration {i}");
+                //Console.WriteLine($"\nIteration {i}");
 
                 // Select a random population subset
                 int populationLength = solutionPopulation.Length;
@@ -121,7 +121,7 @@ namespace ElectromagneticAlgorithm
                 if (random.NextDouble() < attractionProbability)
                     isAttracting = true;
 
-                Console.WriteLine($"is attracting: {isAttracting}, is exploring: {isExploring}");
+                //Console.WriteLine($"is attracting: {isAttracting}, is exploring: {isExploring}");
 
                 bool betterObjectiveValueNeighbours = (isExploring && !isAttracting) || (!isExploring && isAttracting);
 
@@ -217,6 +217,7 @@ namespace ElectromagneticAlgorithm
 
             if (neighbourhood.Count <= maxNeighbourhoodSize)
             {
+                AlgorithmUtils.Shuffle(neighbourhood);
                 return neighbourhood.ToArray();
             }
 

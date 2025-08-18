@@ -10,6 +10,12 @@ namespace ElectromagneticAlgorithm
 {
     public class SolutionQAP_PMX2 : SolutionQAP
     {
+        public override ISolution GetCopy()
+        {
+            SolutionQAP_PMX2 newSolution = new();
+            newSolution.SetSolutionRepresentation(GetSolutionRepresentation());
+            return newSolution;
+        }
 
         public override void PullTowardsSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration)
         {
