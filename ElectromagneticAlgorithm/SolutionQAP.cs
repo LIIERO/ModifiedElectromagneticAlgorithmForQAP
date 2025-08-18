@@ -200,13 +200,13 @@ namespace ElectromagneticAlgorithm
             List<int> s1Copy = new(s1);
             int range = r - l;
 
-            if (range == 0) throw new Exception("Right side of the range must not be equal to the left side.");
+            //if (range == 0) throw new Exception("Right side of the range must not be equal to the left side.");
 
-            /*if (range == 0)
+            if (range == 0)
             {
                 Console.WriteLine("Warning! Right side of the range must not be equal to the left side.");
                 return;
-            }*/
+            }
 
             // Swap a slice of s1 with slice of s2, and vice versa + Determine the mapping relationship
             AlgorithmUtils.Map<int, int> mappingRelationship = new();

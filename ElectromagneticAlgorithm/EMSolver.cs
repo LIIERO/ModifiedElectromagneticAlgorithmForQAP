@@ -96,14 +96,14 @@ namespace ElectromagneticAlgorithm
                 bool isExploring = false;
                 if (i < maxIter)
                 {
-                    Console.WriteLine($"Population entropy: {popEntropy}");
+                    //Console.WriteLine($"Population entropy: {popEntropy}");
                     double normalizedEntropy = CalculateNormalizedPopulationEntropy(popEntropy, entropyMin, entropyMax, 0.0001);
-                    Console.WriteLine($"Normalized entropy: {normalizedEntropy}");
+                    //Console.WriteLine($"Normalized entropy: {normalizedEntropy}");
                     //double entropy = Math.Exp(-i / normalizedEntropy);
                     double explorationDecay = 1.0 - (i % cycleIter / (double)cycleIter);
-                    Console.WriteLine($"Exploration decay: {explorationDecay}");
+                    //Console.WriteLine($"Exploration decay: {explorationDecay}");
                     double entropyChance = explorationDecay * (1.0 - normalizedEntropy); // Im większa entropia tym mniejsza szansa na eksplorację
-                    Console.WriteLine($"Calculated chance: {entropyChance}");
+                    //Console.WriteLine($"Calculated chance: {entropyChance}");
 
                     if (random.NextDouble() < entropyChance)
                         isExploring = true;
@@ -125,23 +125,21 @@ namespace ElectromagneticAlgorithm
 
                 bool betterObjectiveValueNeighbours = (isExploring && !isAttracting) || (!isExploring && isAttracting);
 
-                /*foreach (ISolution solution in solutionPopulationSubset)
-                {
-                    ISolution[] neighbouringSubset = ChooseSolutionsInHammingDistance(solution, betterObjectiveValueNeighbours);
-
-                    if (isAttracting)
-                        Attraction(solution, neighbouringSubset, isExploring);
-                    else
-                        Repulsion(solution, neighbouringSubset, isExploring);
-
-                    //AttractionInjection(solution, neighbouringSubset);
-                }*/
 
                 // Kopiowanie aktywnej populacji w celu uniknięcia nieścisłości w wykonywaniu ruchów
                 ISolution[] popSubsetCopy = new ISolution[populationSubsetSize];
                 for (int idx = 0; idx < populationSubsetSize; idx++)
                     popSubsetCopy[idx] = solutionPopulationSubset[idx].GetCopy();
-                
+
+                /*foreach (ISolution solution in solutionPopulationSubset)
+                {
+                    ISolution[] neighbouringSubset = ChooseSolutionsInHammingDistance(solution, betterObjectiveValueNeighbours, popSubsetCopy);
+
+                    if (isAttracting)
+                        Attraction(solution, neighbouringSubset, isExploring);
+                    else
+                        Repulsion(solution, neighbouringSubset, isExploring);
+                }*/
 
                 Parallel.ForEach(solutionPopulationSubset, solution =>
                 {
@@ -219,27 +217,29 @@ namespace ElectromagneticAlgorithm
 
             if (neighbourhood.Count <= maxNeighbourhoodSize)
             {
-                // Ordering from worst to best so the strongest solutions have the impact last (unless negative neig)
-                AlgorithmUtils.Shuffle(neighbourhood);
-                /*if (betterObjectiveValue) neighbourhood.OrderBy(sol => -sol.GetCost());
-                else neighbourhood.OrderBy(sol => sol.GetCost());*/
-                //neighbourhood.OrderBy(sol => sol.GetCost());
                 return neighbourhood.ToArray();
             }
 
-            //Console.Write("Trim");
-            //solutions.Shuffle();
-            if (betterObjectiveValue) // Take n best or worst solutions
-                neighbourhood.OrderBy(sol => sol.GetCost());
-            else
-                neighbourhood.OrderBy(sol => -sol.GetCost());
-            List<ISolution> neighbourhoodTrimmed = neighbourhood.Take(maxNeighbourhoodSize).ToList();
+            // Segregujemy od najbliższych do najdalszych
+            /*Console.WriteLine("\n\nBeforeTrimStart");
+            foreach (ISolution neighbour in neighbourhood)
+            {
+                Console.Write(neighbour.ToString());
+                Console.WriteLine($"   {neighbour.GetDistanceFromSolution(solution)}");
+            }
+            Console.WriteLine("Trim============================");*/
 
-            // Ordering from worst to best so the strongest solutions have the impact last (unless negative neig)
+            neighbourhood = neighbourhood.OrderBy(sol => sol.GetDistanceFromSolution(solution)).ToList();
+            List<ISolution> neighbourhoodTrimmed = neighbourhood.Take(maxNeighbourhoodSize).ToList();
             AlgorithmUtils.Shuffle(neighbourhoodTrimmed);
-            /*if (betterObjectiveValue) neighbourhoodTrimmed.OrderBy(sol => -sol.GetCost());
-            else neighbourhoodTrimmed.OrderBy(sol => sol.GetCost());*/
-            //neighbourhoodTrimmed.OrderBy(sol => sol.GetCost());
+
+            /*foreach (ISolution neighbour in neighbourhoodTrimmed)
+            {
+                Console.Write(neighbour.ToString());
+                Console.WriteLine($"   {neighbour.GetDistanceFromSolution(solution)}");
+            }
+            Console.WriteLine("AfterTrimEnd\n\n");*/
+
             return neighbourhoodTrimmed.ToArray();
         }
 

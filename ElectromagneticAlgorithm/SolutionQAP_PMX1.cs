@@ -20,6 +20,12 @@ namespace ElectromagneticAlgorithm
             double forceRatio = secondSolForce / attractionForces.Sum();
             int addedRange = (int)Math.Ceiling(forceRatio * solutionLength);
 
+            if (addedRange == 0)
+            {
+                Console.WriteLine("Warning! Right side of the range must not be equal to the left side.");
+                return;
+            }
+
             if (addedRange > maxMatchingRegion)
             {
                 addedRange = maxMatchingRegion;

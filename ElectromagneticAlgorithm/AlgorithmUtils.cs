@@ -71,16 +71,7 @@ namespace ElectromagneticAlgorithm
 
         public static void Shuffle<T>(this IList<T> list, int? seed = null) // Źródło: https://stackoverflow.com/questions/273313/randomize-a-listt
         {
-            Random rng;
-            if (seed == null)
-                rng = new Random();
-            else
-            {
-                int intSeed = (int)seed;
-                rng = new Random(intSeed);
-            }
-
-            //Random rng = seed == null ? new Random() : new Random((int)seed);
+            Random rng = seed == null ? new Random() : new Random((int)seed);
             //Random rng = new Random();
 
             int n = list.Count;
@@ -192,7 +183,7 @@ namespace ElectromagneticAlgorithm
                 }
 
                 List<int> newSolutionRepr = Enumerable.Range(0, solutionLength).ToList();
-                AlgorithmUtils.Shuffle(newSolutionRepr, seed + i);
+                Shuffle(newSolutionRepr, seed + i);
 
                 initialPopulation[i].SetSolutionRepresentation(newSolutionRepr);
             }

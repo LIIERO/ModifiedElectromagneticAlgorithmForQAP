@@ -52,6 +52,8 @@ public class EMTest
         //double expVal = SolutionQAP.GetConditionalExpectedCost(c);
         //Console.WriteLine(expVal);
 
+
+        // Inicjalizacja =================================================================================
         Console.WriteLine("Ile razy wywołać algorytm?: ");
         int noAlgRuns = int.Parse(Console.ReadLine());
 
@@ -72,6 +74,8 @@ public class EMTest
         int initialPopulationSize = int.Parse(Console.ReadLine());
 
         ISolution[] initialPopulation = AlgorithmUtils.CreateInitialPopulationForQAP(solutionLength, initialPopulationSize, nType, seed);
+
+        Console.WriteLine($"Wybrana klasa: {initialPopulation[0].GetType()}");
 
         // Inicjalizacja algorytmu elektromagnetycznego
         Console.WriteLine("Podaj liczbę iteracji: ");
@@ -158,5 +162,36 @@ public class EMTest
         Console.WriteLine($"\nstd output: {AlgorithmUtils.CalculateStandardDeviation(bestSolutionOutputs)}, std time {AlgorithmUtils.CalculateStandardDeviation(timeOutputs) / 1000.0} sec.");
 
         Console.ReadLine();
+
+
+
+        /*int initialPopulationSize = 200;
+        SolutionQAP_PMX2[] initialPopulation = new SolutionQAP_PMX2[initialPopulationSize];
+
+        for (int i = 0; i < initialPopulationSize; i++)
+        {
+            initialPopulation[i] = new SolutionQAP_PMX2();
+
+            List<int> newSolution = Enumerable.Range(0, solutionLength).ToList();
+            AlgorithmUtils.Shuffle(newSolution);
+            initialPopulation[i].SetSolutionRepresentation(newSolution);
+
+        }
+
+        int maxIter = 100;
+        int smax = 15;
+        int neighbourhoodDistance = 18;
+        double attractionProbability = 0.8;
+        double entropyMin = 7.54963; // For 200 pop
+        double entropyMax = 7.64195; // For 200 pop
+
+        EMSolver solver = new(initialPopulation, maxIter, maxIter, 0, neighbourhoodDistance, smax, attractionProbability, 1.0f, 4, entropyMin, entropyMax);
+        solver.InitializeBestSolutionDataSaver(exeDirectory + @"\Output", 0);
+
+        solver.PrintPopulation();
+        (double bestSolution, long timeMs) result = solver.RunAlgorithm();
+        solver.PrintPopulation();
+        Console.WriteLine(result.bestSolution);
+        Console.ReadLine();*/
     }
 }
