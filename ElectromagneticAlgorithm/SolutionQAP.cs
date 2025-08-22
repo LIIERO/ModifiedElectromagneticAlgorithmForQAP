@@ -231,7 +231,7 @@ namespace ElectromagneticAlgorithm
             while (n != l) // This will loop around if l < r
             {
                 LegalizeSolution(s1, n, mappingRelationship.Forward, forwardElements);
-                LegalizeSolution(s2, n, mappingRelationship.Reverse, reverseElements);
+                //LegalizeSolution(s2, n, mappingRelationship.Reverse, reverseElements);
                 n++;
                 n %= solutionLength;
             }

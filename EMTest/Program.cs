@@ -79,9 +79,10 @@ public class EMTest
 
         // Inicjalizacja algorytmu elektromagnetycznego
         Console.WriteLine("Podaj liczbę iteracji: ");
-        int noIter = int.Parse(Console.ReadLine());
-        int maxIter = noIter;
-        int cycleIter = noIter;
+        int maxIter = int.Parse(Console.ReadLine());
+
+        Console.WriteLine("Podaj liczbę iteracji w jednym cyklu: ");
+        int cycleIter = int.Parse(Console.ReadLine());
         int bonusExploatationIter = 0;
 
         Console.WriteLine("Podaj odległość sąsiedztwa: ");
@@ -126,10 +127,12 @@ public class EMTest
             if (dataSaveInit)
                 solver.InitializeBestSolutionDataSaver(dataSaverPath, i);
 
-            solver.PrintPopulation();
+            //solver.PrintPopulation();
 
-            (double bestSolution, long timeMs) result = solver.RunAlgorithm();
-            algOutputs[i] = result;
+            (ISolution bestSolution, long timeMs) result = solver.RunAlgorithm();
+            Console.WriteLine(result.bestSolution.GetCost());
+            Console.WriteLine(((SolutionQAP)result.bestSolution).ToString());
+            algOutputs[i] = (result.bestSolution.GetCost(), result.timeMs);
 
             // Make new initial population
             if ((i + 1) % incrementSeed == 0)
@@ -156,6 +159,7 @@ public class EMTest
         var timeOutputs = from el in algOutputs select (double)el.timeMs;
 
         Console.WriteLine($"\nBest of all: val {bestOutput.bestSolution}, time {bestOutput.timeMs / 1000.0} sec.");
+        Console.WriteLine();
         Console.WriteLine($"Worst of all: val {worstOutput.bestSolution}, time {worstOutput.timeMs / 1000.0} sec.");
 
         Console.WriteLine($"\nAverage output: {averageOutput}, average time {averageTime / 1000.0} sec.");

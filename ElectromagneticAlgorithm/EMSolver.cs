@@ -69,7 +69,7 @@ namespace ElectromagneticAlgorithm
         }
 
 
-        public (double bestSolution, long timeMs) RunAlgorithm()
+        public (ISolution bestSolution, long timeMs) RunAlgorithm()
         {
             double minEntropy = double.MaxValue;
             double maxEntropy = 0;
@@ -81,7 +81,7 @@ namespace ElectromagneticAlgorithm
             // Global iteration
             for (int i = 0; i < trueMaxIter; i++)
             {
-                //Console.WriteLine($"\nIteration {i}");
+                Console.WriteLine($"\nIteration {i}");
 
                 // Select a random population subset
                 int populationLength = solutionPopulation.Length;
@@ -100,7 +100,7 @@ namespace ElectromagneticAlgorithm
                     double normalizedEntropy = CalculateNormalizedPopulationEntropy(popEntropy, entropyMin, entropyMax, 0.0001);
                     //Console.WriteLine($"Normalized entropy: {normalizedEntropy}");
                     //double entropy = Math.Exp(-i / normalizedEntropy);
-                    double explorationDecay = 1.0 - (i % cycleIter / (double)cycleIter);
+                    double explorationDecay = 1.0 - (i%cycleIter / (double)cycleIter);
                     //Console.WriteLine($"Exploration decay: {explorationDecay}");
                     double entropyChance = explorationDecay * (1.0 - normalizedEntropy); // Im większa entropia tym mniejsza szansa na eksplorację
                     //Console.WriteLine($"Calculated chance: {entropyChance}");
@@ -167,12 +167,12 @@ namespace ElectromagneticAlgorithm
             watch.Stop();
             long elapsedMs = watch.ElapsedMilliseconds;
             
-            //Console.WriteLine($"Min entropy: {minEntropy}");
-            //Console.WriteLine($"Max entropy: {maxEntropy}");
+            Console.WriteLine($"Min entropy: {minEntropy}");
+            Console.WriteLine($"Max entropy: {maxEntropy}");
 
             FinishAlgorithm();
 
-            return (bestGlobalSolutionEver.GetCost(), elapsedMs);
+            return (bestGlobalSolutionEver, elapsedMs);
         }
 
         private void FinishAlgorithm()
