@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using static ElectromagneticAlgorithm.AlgorithmUtils;
 
 public class EMTest
 {
@@ -10,9 +11,9 @@ public class EMTest
         string exeDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         Console.WriteLine(exeDirectory);
         //string pathStart = @"E:\SzkolaProgramowanie\Magisterka\ModifiedElectromagneticAlgorithmForQAP\Data\chr22";
-        Console.WriteLine("Podaj zbiór danych (a/b): ");
+        Console.WriteLine("Podaj nazwę instancji danych: ");
         string dSet = Console.ReadLine();
-        string dataPath = exeDirectory + @"\Input\chr22" + dSet + ".dat";
+        string dataPath = exeDirectory + @"\Input\" + dSet + ".dat";
 
         //string dataPath = @"E:\SzkolaProgramowanie\Magisterka\ModifiedElectromagneticAlgorithmForQAP\Data\chr22b.dat";
         SolutionQAP.SetQAPData(dataPath);
@@ -20,13 +21,28 @@ public class EMTest
         Console.WriteLine($"Wymiarowość problemu {SolutionQAP.solutionLength}");
         Console.WriteLine($"Średni koszt rozwiązania: {SolutionQAP.GetAverageCost()}");
 
+        /*// Test 2-opt
+        SolutionQAP_PMX1 s = new();
+        List<int> repr = Enumerable.Range(0, solutionLength).ToList();
+        AlgorithmUtils.Shuffle(repr);
+        s.SetSolutionRepresentation(repr);
 
-        //// Random search
-        //SolutionQAP sol = new();
-        //sol.SetSolutionRepresentation<List<int>>(Enumerable.Range(0, solutionLength).ToList());
-        //RandomSearchQAP rs = new(sol);
-        //rs.Search(260000);
-        //return;
+        Console.WriteLine("Initial solution: " + s.ToString());
+        Console.WriteLine("Initial cost: " + s.GetCost());
+        Console.WriteLine(s.GetType());
+        s.LocalOptimization();
+        Console.WriteLine("Optimized solution " + s.ToString());
+        Console.WriteLine("Optimized cost: " + s.GetCost());
+        Console.WriteLine(s.GetType());
+        return;*/
+
+
+        /*// Test random search
+        SolutionQAP sol = new();
+        sol.SetSolutionRepresentation<List<int>>(Enumerable.Range(0, solutionLength).ToList());
+        RandomSearchQAP rs = new(sol);
+        rs.Search(260000);
+        return;*/
 
 
         /*// Test PMX
@@ -86,22 +102,30 @@ public class EMTest
         int bonusExploatationIter = 0;
 
         Console.WriteLine("Podaj odległość sąsiedztwa: ");
-        int neighbourhoodDistance = int.Parse(Console.ReadLine()); // 18
+        int neighbourhoodDistance = int.Parse(Console.ReadLine());
 
         Console.WriteLine("Podaj maksymalną liczebność sąsiedztwa: ");
-        int maxNeighbourhoodSize = int.Parse(Console.ReadLine()); // 15
+        int maxNeighbourhoodSize = int.Parse(Console.ReadLine());
 
         Console.WriteLine("Podaj prawdopodobieństwo przyciągania: ");
-        double attractionProbability = double.Parse(Console.ReadLine()); // 0.8
-        float subsetRatio = 1.0f; // 1
+        double attractionProbability = double.Parse(Console.ReadLine());
+        float subsetRatio = 1.0f;
+
+        Console.WriteLine("Podaj prawdopodobieństwo przeszukiwania lokalnego (tylko przy eksploitacji): ");
+        double localSearchProb = double.Parse(Console.ReadLine());
 
         Console.WriteLine("Podaj parametr k dla CEV: ");
-        int k = int.Parse(Console.ReadLine()); // 3
+        int k = int.Parse(Console.ReadLine());
+
+        /*Console.WriteLine("Podaj minimalną entropię: ");
+        double entropyMin = double.Parse(Console.ReadLine());
+        Console.WriteLine("Podaj maksymalną entropię: ");
+        double entropyMax = double.Parse(Console.ReadLine());*/
 
         double entropyMin, entropyMax;
-        if (initialPopulationSize == 200)
+        if (initialPopulationSize == 200 && (dSet == "chr22a" || dSet == "chr22b"))
         {
-            entropyMin = 7.54963; // For 200 pop
+            entropyMin = 7.49178; // For 200 pop
             entropyMax = 7.64195; // For 200 pop
         }
         else
@@ -123,7 +147,7 @@ public class EMTest
         (double bestSolution, long timeMs)[] algOutputs = new (double bestSolution, long timeMs)[noAlgRuns];
         for (int i = 0; i < noAlgRuns; i++)
         {
-            EMSolver solver = new(initialPopulation, maxIter, cycleIter, bonusExploatationIter, neighbourhoodDistance, maxNeighbourhoodSize, attractionProbability, subsetRatio, k, entropyMin, entropyMax);
+            EMSolver solver = new(initialPopulation, maxIter, cycleIter, bonusExploatationIter, neighbourhoodDistance, maxNeighbourhoodSize, attractionProbability, subsetRatio, k, localSearchProb, entropyMin, entropyMax);
             if (dataSaveInit)
                 solver.InitializeBestSolutionDataSaver(dataSaverPath, i);
 
@@ -139,7 +163,7 @@ public class EMTest
             {
                 Console.WriteLine("New init pop");
                 seed += incrementSeedVal;
-                initialPopulation = AlgorithmUtils.CreateInitialPopulationForQAP(solutionLength, initialPopulationSize, nType, seed);
+                initialPopulation = CreateInitialPopulationForQAP(solutionLength, initialPopulationSize, nType, seed);
             }
         }
 
@@ -163,7 +187,7 @@ public class EMTest
         Console.WriteLine($"Worst of all: val {worstOutput.bestSolution}, time {worstOutput.timeMs / 1000.0} sec.");
 
         Console.WriteLine($"\nAverage output: {averageOutput}, average time {averageTime / 1000.0} sec.");
-        Console.WriteLine($"\nstd output: {AlgorithmUtils.CalculateStandardDeviation(bestSolutionOutputs)}, std time {AlgorithmUtils.CalculateStandardDeviation(timeOutputs) / 1000.0} sec.");
+        Console.WriteLine($"\nstd output: {CalculateStandardDeviation(bestSolutionOutputs)}, std time {CalculateStandardDeviation(timeOutputs) / 1000.0} sec.");
 
         Console.ReadLine();
 

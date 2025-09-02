@@ -17,6 +17,7 @@ namespace ElectromagneticAlgorithm
         private double attractionProbability; // Greater than 0, less than 1
         private float subsetRatio;
         private int k; // How many tries CEV crossovers have
+        private double localSearchProb;
         double entropyMin;
         double entropyMax;
         private ISolution[] solutionPopulation;
@@ -29,7 +30,7 @@ namespace ElectromagneticAlgorithm
         private bool saveBestSolutionData = false;
         private string bestSolutionDataPath;
 
-        public EMSolver(ISolution[] initialPopulation, int maxIter, int cycleIter, int bonusExploatationIter, int neighbourhoodDistance, int maxNeighbourhoodSize, double attractionProbability, float subsetRatio, int k, double entropyMin, double entropyMax)
+        public EMSolver(ISolution[] initialPopulation, int maxIter, int cycleIter, int bonusExploatationIter, int neighbourhoodDistance, int maxNeighbourhoodSize, double attractionProbability, float subsetRatio, int k, double localSearchProb, double entropyMin, double entropyMax)
         {
             solutionPopulation = new ISolution[initialPopulation.Length];
             for (int i = 0; i < initialPopulation.Length; i++)
@@ -45,6 +46,7 @@ namespace ElectromagneticAlgorithm
             this.entropyMin = entropyMin;
             this.entropyMax = entropyMax;
             this.k = k;
+            this.localSearchProb = localSearchProb;
             random = new Random();
 
             Console.WriteLine("\n\nModified EM algorithm.");
@@ -81,8 +83,6 @@ namespace ElectromagneticAlgorithm
             // Global iteration
             for (int i = 0; i < trueMaxIter; i++)
             {
-                Console.WriteLine($"\nIteration {i}");
-
                 // Select a random population subset
                 int populationLength = solutionPopulation.Length;
                 int populationSubsetSize = (int)(populationLength * subsetRatio);
@@ -107,24 +107,17 @@ namespace ElectromagneticAlgorithm
 
                     if (random.NextDouble() < entropyChance)
                         isExploring = true;
+
+                    Console.WriteLine($"\nIteration {i}: expprob={entropyChance}");
                 }
-
-                // temporary
-                //bool isExploring = true;
-                //if (random.NextDouble() < attractionProbability)
-                //    isExploring = false;
-
-                // temporary
-                //bool isExploring = false;
 
                 bool isAttracting = false;
                 if (random.NextDouble() < attractionProbability)
                     isAttracting = true;
 
-                //Console.WriteLine($"is attracting: {isAttracting}, is exploring: {isExploring}");
+                Console.WriteLine($"is attracting: {isAttracting}, is exploring: {isExploring}");
 
                 bool betterObjectiveValueNeighbours = (isExploring && !isAttracting) || (!isExploring && isAttracting);
-
 
                 // Kopiowanie aktywnej populacji w celu uniknięcia nieścisłości w wykonywaniu ruchów
                 ISolution[] popSubsetCopy = new ISolution[populationSubsetSize];
@@ -149,7 +142,16 @@ namespace ElectromagneticAlgorithm
                         Attraction(solution, neighbouringSubset, isExploring);
                     else
                         Repulsion(solution, neighbouringSubset, isExploring);
+
+                    // Bonus local 2-opt search
+                    if (!isExploring && random.NextDouble() < localSearchProb)
+                    {
+                        solution.LocalOptimization();
+                    }
                 });
+
+
+                
 
                 ISolution bestLocalSolution = GetBestSolutionFromPopulation();
                 double bestLocalSolutionCost = bestLocalSolution.GetCost();

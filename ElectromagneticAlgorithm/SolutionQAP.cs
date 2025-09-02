@@ -475,5 +475,12 @@ namespace ElectromagneticAlgorithm
 
             return (double)sum1 + (m1 * sum2) + (m1 * sum3) + (m1 * sum4) + (m1 * m2 * sum5);
         }
+
+
+        public void LocalOptimization()
+        {
+            List<int> repr = GetSolutionRepresentation();
+            SetSolutionRepresentation(AlgorithmUtils.TwoOpt.Optimize(repr));
+        }
     }
 }

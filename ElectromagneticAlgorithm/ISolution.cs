@@ -21,5 +21,7 @@ namespace ElectromagneticAlgorithm
         public void RepelFromSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration); // SwapElementsMatchingWithSolution
 
         public double GetDistanceFromSolution(ISolution solution);
+
+        public void LocalOptimization();
     }
 }

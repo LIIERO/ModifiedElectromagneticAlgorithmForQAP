@@ -200,5 +200,71 @@ namespace ElectromagneticAlgorithm
         public class MismatchedSolutionException : Exception { } // Kiedy próbujemy robić crossover różnych typów rozwiązań
 
         public class SolutionNotInitializedException : Exception { }
+
+
+        //public class TwoOpt<T> where T : SolutionQAP, new()
+        //{
+        //    private T permutation;
+        //    public TwoOpt(ISolution perm)
+        //    {
+        //        permutation = (T)perm;
+        //    }
+
+
+        //    private void Swap(int v1, int v2)
+        //    {
+        //        List<int> newPerm = permutation.GetCopy().GetRepre;
+
+
+        //    }
+        //}
+
+        public static class TwoOpt
+        {
+            public static double CalculateCost(List<int> repr)
+            {
+                SolutionQAP sol = new();
+                sol.SetSolutionRepresentation(repr);
+                return sol.GetCost();
+            }
+
+            private static List<int> TwoOptSwap(List<int> repr, int i, int k)
+            {
+                List<int> newRepr = new();
+
+                for (int c = 0; c < i; c++) newRepr.Add(repr[c]);
+                for (int c = k; c >= i; c--) newRepr.Add(repr[c]);
+                for (int c = k + 1; c < repr.Count; c++) newRepr.Add(repr[c]);
+
+                return newRepr;
+            }
+
+            public static List<int> Optimize(List<int> repr)
+            {
+                bool improvement = true;
+                double bestCost = CalculateCost(repr);
+
+                while (improvement)
+                {
+                    improvement = false;
+                    for (int i = 1; i < repr.Count - 2; i++)
+                    {
+                        for (int k = i + 1; k < repr.Count - 1; k++)
+                        {
+                            List<int> newTour = TwoOptSwap(repr, i, k);
+                            double newCost = CalculateCost(newTour);
+
+                            if (newCost < bestCost)
+                            {
+                                repr = newTour;
+                                bestCost = newCost;
+                                improvement = true;
+                            }
+                        }
+                    }
+                }
+                return repr;
+            }
+        }
     }
 }
