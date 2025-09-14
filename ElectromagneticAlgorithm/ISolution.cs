@@ -8,9 +8,8 @@ namespace ElectromagneticAlgorithm
 {
     public interface ISolution
     {
-        public void SetSolutionRepresentation<T>(T repr); // Optional - not used by EM
-
-        public void ShuffleRepresentation(int? seed = null); // Optional - not used by EM
+        public void SetSolutionRepresentation<T>(T repr); // Opcjonalne - nie używane przez EM
+        public void ShuffleRepresentation(int? seed = null); // Opcjonalne - nie używane przez EM
 
         public ISolution GetCopy();
 

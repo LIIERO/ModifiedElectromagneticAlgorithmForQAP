@@ -14,9 +14,9 @@ namespace ElectromagneticAlgorithm
         private int bonusExploatationIter;
         private int neighbourhoodDistance;
         private int maxNeighbourhoodSize;
-        private double attractionProbability; // Greater than 0, less than 1
+        private double attractionProbability;
         private float subsetRatio;
-        private int k; // How many tries CEV crossovers have
+        private int k;
         private double localSearchProb;
         double entropyMin;
         double entropyMax;
@@ -52,8 +52,6 @@ namespace ElectromagneticAlgorithm
             Console.WriteLine("\n\nModified EM algorithm.");
             Console.WriteLine($"P_init_size = {initialPopulation.Length}, I_max = {maxIter}, d_max = {neighbourhoodDistance}, s_max = {maxNeighbourhoodSize}, p_A = {attractionProbability}, k = {k}");
 
-            //bestGlobalSolutionEver = initialPopulation[0];
-            //UpdateBestGlobalSolution();
             bestGlobalSolutionEver = GetBestSolutionFromPopulation().GetCopy();
             Console.WriteLine($"Best initial solution cost: {bestGlobalSolutionEver.GetCost()}");
         }
@@ -67,7 +65,7 @@ namespace ElectromagneticAlgorithm
             bestSolutionDataPath = directoryAbsolutePath + @"\bestSolutionData" + fileNumber.ToString() + ".csv";
 
             bestSolutionCSV = new StringBuilder();
-            bestSolutionCSV.AppendLine("Iteration,Best local solution cost,Best global solution cost"); // TODO: Więcej parametrów
+            bestSolutionCSV.AppendLine("Iteration,Best local solution cost,Best global solution cost");
         }
 
 
@@ -80,10 +78,9 @@ namespace ElectromagneticAlgorithm
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            // Global iteration
+            // Globalna iteracja
             for (int i = 0; i < trueMaxIter; i++)
             {
-                // Select a random population subset
                 int populationLength = solutionPopulation.Length;
                 int populationSubsetSize = (int)(populationLength * subsetRatio);
                 solutionPopulationSubset = AlgorithmUtils.ChooseRandom(solutionPopulation, populationSubsetSize);
@@ -143,15 +140,13 @@ namespace ElectromagneticAlgorithm
                     else
                         Repulsion(solution, neighbouringSubset, isExploring);
 
-                    // Bonus local 2-opt search
+
                     if (!isExploring && random.NextDouble() < localSearchProb)
                     {
                         solution.LocalOptimization();
                     }
                 });
 
-
-                
 
                 ISolution bestLocalSolution = GetBestSolutionFromPopulation();
                 double bestLocalSolutionCost = bestLocalSolution.GetCost();
@@ -183,7 +178,6 @@ namespace ElectromagneticAlgorithm
             {
                 File.WriteAllText(bestSolutionDataPath, bestSolutionCSV.ToString());
                 Console.WriteLine($"Saved best solution data to {bestSolutionDataPath}");
-                //saveBestSolutionData = false;
             }
         }
 
@@ -205,7 +199,7 @@ namespace ElectromagneticAlgorithm
             List<ISolution> neighbourhood = new();
             foreach (ISolution neighbour in neighbouringSolutions)
             {
-                if (betterObjectiveValue) // Better means smaller
+                if (betterObjectiveValue) // Lepsze oznacza mniejsze
                 {
                     if (neighbour.GetCost() < solutionCost)
                         neighbourhood.Add(neighbour);
@@ -224,24 +218,9 @@ namespace ElectromagneticAlgorithm
             }
 
             // Segregujemy od najbliższych do najdalszych
-            /*Console.WriteLine("\n\nBeforeTrimStart");
-            foreach (ISolution neighbour in neighbourhood)
-            {
-                Console.Write(neighbour.ToString());
-                Console.WriteLine($"   {neighbour.GetDistanceFromSolution(solution)}");
-            }
-            Console.WriteLine("Trim============================");*/
-
             neighbourhood = neighbourhood.OrderBy(sol => sol.GetDistanceFromSolution(solution)).ToList();
             List<ISolution> neighbourhoodTrimmed = neighbourhood.Take(maxNeighbourhoodSize).ToList();
             AlgorithmUtils.Shuffle(neighbourhoodTrimmed);
-
-            /*foreach (ISolution neighbour in neighbourhoodTrimmed)
-            {
-                Console.Write(neighbour.ToString());
-                Console.WriteLine($"   {neighbour.GetDistanceFromSolution(solution)}");
-            }
-            Console.WriteLine("AfterTrimEnd\n\n");*/
 
             return neighbourhoodTrimmed.ToArray();
         }
@@ -262,7 +241,6 @@ namespace ElectromagneticAlgorithm
                 entropy += proportion * Math.Log2(proportion);
             }
 
-            //Console.WriteLine(-entropy);
             return -entropy;
         }
 
@@ -280,34 +258,9 @@ namespace ElectromagneticAlgorithm
             return neighbouringSolutions.ToArray();
         }
 
-        /*private void UpdateBestGlobalSolution() // TODO: Simplify like in GetBestSolutionFromPopulation
-        {
-            int costThreshold = bestGlobalSolutionEver.GetCost();
-
-            foreach (ISolution solution in solutionPopulation)
-            {
-                int solutionCost = solution.GetCost();
-                if (solutionCost < costThreshold)
-                {
-                    bestGlobalSolutionEver = solution;
-                    costThreshold = solutionCost;
-                }
-            }
-        }*/
-
         public ISolution Attraction(ISolution solution, ISolution[] neighbouringSolutions, bool exploration)
         {
-            // Randomly choose the mapping section
-            //Random random = new();
-            //int solLen = solution.GetSolutionLength();
-            //int r1 = random.Next(solLen); int r2 = random.Next(solLen);
-            //while (r1 == r2) r2 = random.Next(solLen);
-            //(int l, int r) = r2 > r1 ? (r1, r2) : (r2, r1);
-            //Console.WriteLine($"l = {l}, r = {r}");
-
-            // Determine attraction forces for each neighbouring solution
             int d = neighbouringSolutions.Length;
-            //Console.WriteLine(d);
             double[] attractionForces = new double[d];
             double solutionCharge = GetSolutionCharge(solution);
 
@@ -317,25 +270,11 @@ namespace ElectromagneticAlgorithm
                 attractionForces[i] = (solutionCharge * charge) / Math.Pow(solution.GetDistanceFromSolution(neighbouringSolutions[i]), 2);
             }
 
-            // Insert a part of each solution to the mapping section of the given solution proportionally to the power of attraction
             double attractionForcesSum = attractionForces.Sum();
-            //int lP = l;
 
             for (int i = 0; i < d; i++)
             {
-                //double forceRatio = attractionForces[i] / attractionForcesSum;
-                //Console.WriteLine(forceRatio);
-                //int addedRange = (int)Math.Ceiling(forceRatio * solLen);
-                //Console.WriteLine(addedRange);
-                //if (addedRange == 0) addedRange = 1;
-                //if (addedRange == solLen) addedRange = solLen - 1;
-
-                //int rP = lP + addedRange;
-                //rP %= solLen;
-
                 solution.PullTowardsSolution(neighbouringSolutions[i], attractionForces[i], neighbouringSolutions, attractionForces, k, exploration);
-                //lP = rP + 1;
-                //lP %= solLen;
             }
 
             return solution;
@@ -343,10 +282,8 @@ namespace ElectromagneticAlgorithm
 
         public ISolution Repulsion(ISolution solution, ISolution[] neighbouringSolutions, bool exploration)
         {
-            // Determine attraction forces for each neighbouring solution
             int d = neighbouringSolutions.Length;
             double[] attractionForces = new double[d];
-            //int solLen = solution.GetSolutionLength();
             double solutionCharge = GetSolutionCharge(solution);
 
             for (int i = 0; i < d; i++)

@@ -29,13 +29,11 @@ namespace ElectromagneticAlgorithm
             double forceRatio = secondSolForce / attractionForces.Sum();
 
             int noElements = Math.Min((int)Math.Ceiling(sameElementsSum * forceRatio), noElementsInSamePositions); // Wzór (4) praca WCH
-            //Console.WriteLine($"Liczba zmienionych: {noElements}, max: {noElementsInSamePositions}");
 
-            if (noElements <= 1) return; // No use shuffling 1 or 0 elements
+            if (noElements <= 1) return;
 
             SolutionQAP solution2 = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(secondSolution);
 
-            // Get copies of solutions
             List<int> s1 = new(this.GetSolutionRepresentation());
             List<int> s2 = new(solution2.GetSolutionRepresentation());
             AlgorithmUtils.ValidatePermutation(s2, solutionLength);
@@ -49,10 +47,9 @@ namespace ElectromagneticAlgorithm
                 }
             }
 
-            // We decide on elements we shuffle
             List<int> matchingElementsIndexesCopy = new List<int>(matchingElementsIndexes);
             bool badShuffle = true;
-            while (badShuffle) // Shuffling until we get something that has no elements left on original positions
+            while (badShuffle)
             {
                 badShuffle = false;
                 AlgorithmUtils.Shuffle(matchingElementsIndexes);
@@ -60,14 +57,12 @@ namespace ElectromagneticAlgorithm
                 {
                     if (matchingElementsIndexes[i] == matchingElementsIndexesCopy[i])
                     {
-                        //Console.WriteLine("Bad shuffle");
                         badShuffle = true;
                         matchingElementsIndexes = new List<int>(matchingElementsIndexesCopy);
                         break;
                     }
                 }
             }
-            //Console.WriteLine($"===== orig: {String.Join("; ", matchingElementsIndexesCopy)}, shuffle: {String.Join("; ", matchingElementsIndexes)}");
 
             List<int> bestIndexesToShuffle = new();
             double bestCost = exploration ? 0.0 : double.MaxValue;
@@ -90,8 +85,6 @@ namespace ElectromagneticAlgorithm
 
                 double newCost = GetConditionalExpectedCost(c);
 
-                //Console.WriteLine($"Config {i}: {String.Join("; ", c)}, cost = {newCost}");
-
                 if ((exploration && newCost > bestCost) || (!exploration && newCost < bestCost))
                 {
                     bestCost = newCost;
@@ -99,12 +92,10 @@ namespace ElectromagneticAlgorithm
                 }
             }
 
-            //Console.WriteLine($"Best: {String.Join("; ", bestIndexesToShuffle)}, cost = {bestCost}");
-
             List<int> indexesToShuffle = new List<int>(bestIndexesToShuffle);
             indexesToShuffle.Sort();
 
-            // We use the random order we already have from before
+
             List<int> s1copy = new List<int>(s1);
             for (int i = 0; i < indexesToShuffle.Count; i++)
             {

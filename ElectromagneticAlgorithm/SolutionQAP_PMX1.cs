@@ -36,9 +36,7 @@ namespace ElectromagneticAlgorithm
             {
                 addedRange = maxMatchingRegion;
             }
-            //Console.WriteLine(addedRange);
 
-            // Establish the mapping region randomly k times and find the best one
             int l = 0, r = 0;
             double bestCost = exploration ? 0.0 : double.MaxValue;
             int bestl = 0;
@@ -53,14 +51,12 @@ namespace ElectromagneticAlgorithm
 
             for (int i = 0; i < k; i++)
             {
-                l = random.Next(solutionLength); // first index
-                r = (l + addedRange) % solutionLength; // last index + 1
-                // c1 is the one outside the mapping region, we take the region from c2 and put it in c1
+                l = random.Next(solutionLength);
+                r = (l + addedRange) % solutionLength;
                 int[] c1 = new int[solutionLength], c2 = new int[solutionLength];
 
-                // Inside of the region
                 int n = l;
-                while (n != r) // This will loop around if l > r (which can happen)
+                while (n != r)
                 {
                     c2[n] = s2[n];
                     c1[n] = int.MaxValue;
@@ -69,7 +65,6 @@ namespace ElectromagneticAlgorithm
                     n %= solutionLength;
                 }
 
-                // Outside of the region
                 n = r;
                 while (n != l)
                 {
@@ -89,7 +84,6 @@ namespace ElectromagneticAlgorithm
 
             }
             
-            // PMX
             StandardPMX(secondSolution, bestl, (bestl + addedRange) % solutionLength);
         }
     }

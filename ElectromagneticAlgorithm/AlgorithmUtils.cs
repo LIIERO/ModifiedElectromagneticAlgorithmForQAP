@@ -51,13 +51,13 @@ namespace ElectromagneticAlgorithm
 
         public static void ValidatePermutation(List<int> repr, int solutionLength)
         {
-            if (repr.Count != solutionLength) // Is solution the same length?
+            if (repr.Count != solutionLength)
                 throw new AlgorithmUtils.InvalidSolutionException($"Podana wartość ma złą długość ({repr.Count}), powinna mieć długość {solutionLength}");
 
-            if (repr.Count != repr.Distinct().Count()) // Are there no duplicates?
+            if (repr.Count != repr.Distinct().Count())
                 throw new AlgorithmUtils.InvalidSolutionException($"Rozwiązanie ma duplikaty: {repr}");
 
-            if (repr.Min() != 0 || repr.Max() != solutionLength - 1) // Are the values proper?
+            if (repr.Min() != 0 || repr.Max() != solutionLength - 1)
                 throw new AlgorithmUtils.InvalidSolutionException($"Rozwiązanie ma niepoprawne wartości: {repr}");
         }
 
@@ -189,35 +189,7 @@ namespace ElectromagneticAlgorithm
             }
 
             return initialPopulation;
-        } // Źródło: Opracowanie własne
-
-        // Exceptions
-        public class InvalidSolutionException : Exception
-        {
-            public InvalidSolutionException(string message) : base(message) { }
         }
-
-        public class MismatchedSolutionException : Exception { } // Kiedy próbujemy robić crossover różnych typów rozwiązań
-
-        public class SolutionNotInitializedException : Exception { }
-
-
-        //public class TwoOpt<T> where T : SolutionQAP, new()
-        //{
-        //    private T permutation;
-        //    public TwoOpt(ISolution perm)
-        //    {
-        //        permutation = (T)perm;
-        //    }
-
-
-        //    private void Swap(int v1, int v2)
-        //    {
-        //        List<int> newPerm = permutation.GetCopy().GetRepre;
-
-
-        //    }
-        //}
 
         public static class TwoOpt
         {
@@ -251,12 +223,12 @@ namespace ElectromagneticAlgorithm
                     {
                         for (int k = i + 1; k < repr.Count - 1; k++)
                         {
-                            List<int> newTour = TwoOptSwap(repr, i, k);
-                            double newCost = CalculateCost(newTour);
+                            List<int> newRepr = TwoOptSwap(repr, i, k);
+                            double newCost = CalculateCost(newRepr);
 
                             if (newCost < bestCost)
                             {
-                                repr = newTour;
+                                repr = newRepr;
                                 bestCost = newCost;
                                 improvement = true;
                             }
@@ -266,5 +238,18 @@ namespace ElectromagneticAlgorithm
                 return repr;
             }
         }
+
+
+        // Wyjątki
+        public class InvalidSolutionException : Exception
+        {
+            public InvalidSolutionException(string message) : base(message) { }
+        }
+
+        public class MismatchedSolutionException : Exception { } // Kiedy próbujemy robić crossover różnych typów rozwiązań
+
+        public class SolutionNotInitializedException : Exception { }
+
+        
     }
 }

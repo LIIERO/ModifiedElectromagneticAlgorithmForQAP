@@ -19,7 +19,6 @@ namespace ElectromagneticAlgorithm
 
         public override void PullTowardsSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration)
         {
-            // Establish the mapping region randomly
             int l = random.Next(solutionLength);
             double forceRatio = secondSolForce / attractionForces.Sum();
             int addedRange = (int)Math.Ceiling(forceRatio * solutionLength);
@@ -28,23 +27,18 @@ namespace ElectromagneticAlgorithm
             {
                 addedRange = maxMatchingRegion;
             }
-            //Console.WriteLine(addedRange);
-            int r = (l + addedRange) % solutionLength;
 
-            //Console.WriteLine($"l = {l}, r = {r}");
+            int r = (l + addedRange) % solutionLength;
 
             // PMX
             SolutionQAP solution2 = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(secondSolution);
 
-            // Get copies of solutions
             List<int> s1 = new(this.GetSolutionRepresentation());
             List<int> s2 = new(solution2.GetSolutionRepresentation());
             AlgorithmUtils.ValidatePermutation(s2, solutionLength);
 
             List<int> s1Copy = new(s1);
             int range = r - l;
-            //if (range <= 0) throw new Exception("Right side of the range needs to be higher than the left side.");
-            //if (range == 0) throw new Exception("Right side of the range must not be equal to the left side.");
 
             if (range == 0)
             {
@@ -52,10 +46,9 @@ namespace ElectromagneticAlgorithm
                 return;
             }
 
-            // Swap a slice of s1 with slice of s2
             AlgorithmUtils.Map<int, int> mappingRelationship = new();
             int n = l;
-            while (n != r) // This will loop around if l > r (which can happen)
+            while (n != r)
             {
                 s1[n] = s2[n];
                 s2[n] = s1Copy[n];
@@ -65,7 +58,7 @@ namespace ElectromagneticAlgorithm
                 n %= solutionLength;
             }
 
-            // initialize set of loose elements and incomplete solution
+            // Legalizacja rozwiązania
             List<int> elementsToAdd = new();
             for (int i = 0; i < solutionLength; i++)
             {
@@ -94,7 +87,6 @@ namespace ElectromagneticAlgorithm
                     List<int> elementsToAddCopy = new(elementsToAdd);
                     Array.Copy(c, cCopy, solutionLength);
 
-                    // Put random element at random empty spot
                     int randomElement = elementsToAddCopy[random.Next(elementsToAddCopy.Count)];
                     int emptySpotToAdd = random.Next(elementsToAddCopy.Count);
                     int currentEmptySpot = 0;
@@ -112,11 +104,7 @@ namespace ElectromagneticAlgorithm
                         }
                     }
 
-                    // Check if the new c is better
                     double newCost = GetConditionalExpectedCost(cCopy); // + GetConditionalExpectedCost(c2);
-
-                    //Console.WriteLine($"Config found: {randomElement}      {String.Join("; ", elementsToAddCopy)}, cost = {newCost}");
-                    //Console.WriteLine($"Config found: {String.Join("; ", cCopy)}");
 
                     if ((exploration && newCost > bestCost) || (!exploration && newCost < bestCost))
                     {
@@ -126,15 +114,10 @@ namespace ElectromagneticAlgorithm
                     }
                 }
 
-                // Replace the current c with the best found
                 elementsToAdd = new(elementsToAddBest);
                 Array.Copy(cBest, c, solutionLength);
-
-                //Console.WriteLine($"\nChosen one: {String.Join("; ", elementsToAdd)}, cost = {bestCost}");
-                //Console.WriteLine($"Chosen one: {String.Join("; ", c)}");
             }
 
-            // Put the last elements in
             for (int i = 0; i < solutionLength; i++)
             {
                 if (c[i] == int.MaxValue)
@@ -144,7 +127,6 @@ namespace ElectromagneticAlgorithm
                 }
             }
 
-            // Replace the solution
             this.SetSolutionRepresentation(c.ToList());
         }
     }

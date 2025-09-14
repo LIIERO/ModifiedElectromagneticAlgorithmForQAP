@@ -13,12 +13,11 @@ namespace ElectromagneticAlgorithm
     public class SolutionQAP : ISolution
     {
         public static int solutionLength;
-        protected static int maxMatchingRegion; // Maximum region of that PMX can crossover
+        protected static int maxMatchingRegion; // Maksymalna długość sekcji dopasowania która może zostać krzyżowana
         protected static int[,] facilityFlows;
         protected static int[,] locationDistances;
 
         protected List<int>? assignmentPermutation;
-        //private int solutionLength;
         protected Random random = new();
 
         public virtual ISolution GetCopy()
@@ -41,8 +40,6 @@ namespace ElectromagneticAlgorithm
             string[] splittedContent = content.Split("\n");
             solutionLength = int.Parse(splittedContent[0]);
             maxMatchingRegion = solutionLength / 2;
-            //Console.WriteLine(solutionLength);
-            //Console.WriteLine();
 
             facilityFlows = new int[solutionLength, solutionLength];
             locationDistances = new int[solutionLength, solutionLength];
@@ -100,11 +97,6 @@ namespace ElectromagneticAlgorithm
                 i++;
                 lineCounter++;
             }
-
-            /*AlgorithmUtils.PrintMatrix(facilityFlows);
-            Console.WriteLine("\n\nkaczka\n\n");
-            AlgorithmUtils.PrintMatrix(locationDistances);
-            Console.WriteLine();*/
         }
 
         public static double GetAverageCost()
@@ -134,11 +126,6 @@ namespace ElectromagneticAlgorithm
         }
 
 
-        //public SolutionQAP() : this(Enumerable.Range(0, solutionLength).ToList()) { }
-
-        //private SolutionQAP(SolutionQAP solution) : this(solution.GetSolutionRepresentation()) { }
-
-
         public double GetCost()
         {
             int totalCost = 0;
@@ -162,23 +149,15 @@ namespace ElectromagneticAlgorithm
 
         public virtual void PullTowardsSolution(ISolution secondSolution, double secondSolForce, ISolution[] neighbouringSolutions, double[] attractionForces, int k, bool exploration)
         {
-            // Establish the mapping region randomly
             int l = random.Next(solutionLength);
             double forceRatio = secondSolForce / attractionForces.Sum();
             int addedRange = (int)Math.Ceiling(forceRatio * solutionLength);
             
-            //if (addedRange == solutionLength - 1) Console.WriteLine("WoW");
             if (addedRange > maxMatchingRegion)
-            {
                 addedRange = maxMatchingRegion;
-                //addedRange = solutionLength - 1;
-                //Console.WriteLine(ToString());
-                //Console.WriteLine(secondSolution.ToString());
-            }
-            //Console.WriteLine(addedRange);
+            
             int r = (l + addedRange) % solutionLength;
 
-            // PMX
             StandardPMX(secondSolution, l, r);
         }
 
@@ -188,7 +167,7 @@ namespace ElectromagneticAlgorithm
 
             SolutionQAP solution2 = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(secondSolution);
 
-            // Get copies of solutions
+            // Kopiowanie rozwiązań
             List<int> s1 = new(this.GetSolutionRepresentation());
             List<int> s2 = new(solution2.GetSolutionRepresentation());
             AlgorithmUtils.ValidatePermutation(s2, solutionLength);
@@ -196,18 +175,15 @@ namespace ElectromagneticAlgorithm
             List<int> s1Copy = new(s1);
             int range = r - l;
 
-            //if (range == 0) throw new Exception("Right side of the range must not be equal to the left side.");
-
             if (range == 0)
             {
                 Console.WriteLine("Warning! Right side of the range must not be equal to the left side.");
                 return;
             }
 
-            // Swap a slice of s1 with slice of s2, and vice versa + Determine the mapping relationship
             AlgorithmUtils.Map<int, int> mappingRelationship = new();
             int n = l;
-            while (n != r) // This will loop around if l > r (which can happen)
+            while (n != r)
             {
                 s1[n] = s2[n];
                 s2[n] = s1Copy[n];
@@ -217,7 +193,6 @@ namespace ElectromagneticAlgorithm
                 n %= solutionLength;
             }
 
-            // Legalize solution with the mapping relationship
             List<int> forwardElements = mappingRelationship.Forward.GetKeys();
             List<int> reverseElements = mappingRelationship.Reverse.GetKeys();
 
@@ -228,7 +203,7 @@ namespace ElectromagneticAlgorithm
             }
 
             n = r;
-            while (n != l) // This will loop around if l < r
+            while (n != l)
             {
                 LegalizeSolution(s1, n, mappingRelationship.Forward, forwardElements);
                 //LegalizeSolution(s2, n, mappingRelationship.Reverse, reverseElements);
@@ -236,7 +211,6 @@ namespace ElectromagneticAlgorithm
                 n %= solutionLength;
             }
 
-            // Replace the solutions
             this.SetSolutionRepresentation(s1);
             //solution2.SetSolutionRepresentation(s2);
         }
@@ -251,13 +225,11 @@ namespace ElectromagneticAlgorithm
             double forceRatio = secondSolForce / attractionForces.Sum();
 
             int noElements = Math.Min((int)Math.Ceiling(sameElementsSum * forceRatio), noElementsInSamePositions); // Wzór (4) praca WCH
-            //Console.WriteLine($"Liczba zmienionych: {noElements}, max: {noElementsInSamePositions}");
 
-            if (noElements <= 1) return; // No use shuffling 1 or 0 elements
+            if (noElements <= 1) return;
 
             SolutionQAP solution2 = AlgorithmUtils.ValidateSolutionType<SolutionQAP>(secondSolution);
 
-            // Get copies of solutions
             List<int> s1 = new(this.GetSolutionRepresentation());
             List<int> s2 = new(solution2.GetSolutionRepresentation());
             AlgorithmUtils.ValidatePermutation(s2, solutionLength);
@@ -271,10 +243,9 @@ namespace ElectromagneticAlgorithm
                 }
             }
 
-            // We decide on elements we shuffle
             List<int> matchingElementsIndexesCopy = new List<int>(matchingElementsIndexes);
             bool badShuffle = true;
-            while (badShuffle) // Shuffling until we get something that has no elements left on original positions
+            while (badShuffle) // Mieszanie dopóki żaden element nie jest na oryginalnej pozycji
             {
                 badShuffle = false;
                 AlgorithmUtils.Shuffle(matchingElementsIndexes);
@@ -282,20 +253,18 @@ namespace ElectromagneticAlgorithm
                 {
                     if (matchingElementsIndexes[i] == matchingElementsIndexesCopy[i])
                     {
-                        //Console.WriteLine("Bad shuffle");
                         badShuffle = true;
                         matchingElementsIndexes = new List<int>(matchingElementsIndexesCopy);
                         break;
                     }
                 }
             }
-            //Console.WriteLine($"orig: {String.Join("; ", matchingElementsIndexesCopy)}, shuffle: {String.Join("; ", matchingElementsIndexes)}");
 
             List<int> indexesToShuffleUnsorted = matchingElementsIndexes.Take(noElements).ToList();
             List<int> indexesToShuffle = new List<int>(indexesToShuffleUnsorted);
             indexesToShuffle.Sort();
 
-            // We use the random order we already have from before
+            // Użyta losowa kolejność ustalona wcześniej
             List<int> s1copy = new List<int>(s1);
             for (int i = 0; i < indexesToShuffle.Count; i++)
             {
@@ -320,11 +289,6 @@ namespace ElectromagneticAlgorithm
             }
             return hammingDistance;
         }
-
-        /*public int GetSolutionLength()
-        {
-            return solutionLength;
-        }*/
 
         public List<int> GetSolutionRepresentation()
         {
@@ -371,13 +335,12 @@ namespace ElectromagneticAlgorithm
                     Ulis.Add(i);
             }
 
-            // H -> fixed indexes, U -> loose values
+            // H -> ustalone indeksy, U -> luźne wartości
             int[] H = Hlis.ToArray(); int[] U = Ulis.ToArray();
 
             int n = solutionLength;
             int k = H.Length;
 
-            // If there is only one loose value we can just insert it and calculate the cost normally
             if (k == n - 1)
             {
                 if (U.Length != 1) throw new Exception("Something went really wrong.");
@@ -392,7 +355,7 @@ namespace ElectromagneticAlgorithm
                 }
             }
             
-            if (k >= n - 1) // throw new Exception($"Set H is too large, H: {k}, N: {n}"); // n - k - 1 w mianowniku
+            if (k >= n - 1)
             {
                 SolutionQAP s = new SolutionQAP();
                 s.SetSolutionRepresentation(c.ToList());
